@@ -1,0 +1,5 @@
+url		method	params			return 
+
+/recog	POST	col	raw	card 	{"status": 0, "msg": "", "ans": [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, 0.0, 0.0]]}
+
+/barcode POST	barcode			{"status": 0, "msg": "", "ans": "6937748305057"}

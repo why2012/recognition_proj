@@ -1,0 +1,7 @@
+# coding: utf-8
+
+STATUS_OK = 0
+
+STATUS_SCAN_ERROR = 1
+
+STATUS_PARAM_ERROR = 2
