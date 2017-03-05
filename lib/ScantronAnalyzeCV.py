@@ -366,9 +366,6 @@ def houghRectify(img):
 	img = cv2.blur(img, (4, 4))
 	# 画出轮廓
 	edges = cv2.Canny(img, 10, 50, apertureSize = 3)
-	# edges = sobel(img)
-	# edges = cv2.blur(edges, (8, 8))
-	# edges = erosion(edges, iterations = 1)
 	edges0 = dilation(edges, iterations = 2)
 	edges = cv2.Canny(edges0, 10, 50, apertureSize = 3)
 	lines = np.array(cv2.HoughLinesP(edges, 1, np.pi / 360, 50, minLineLength = 100, maxLineGap = 50))
@@ -380,13 +377,15 @@ def houghRectify(img):
 	intersectPoints = getIntersectPoints(lines, imgSize)
 	cornerPoints = getBoundingCornerPoints(intersectPoints, imgSize)
 	# 微调, 收缩边框
-	# cornerPoints[0] += minW / 100
-	# cornerPoints[1] += minW / 100
-	# cornerPoints[2] -= minW / 100
-	# cornerPoints[3] -= minW / 100
+	cornerPoints[0] += minW / 130.0
+	cornerPoints[1][0] -= minW / 130.0
+	cornerPoints[1][1] += minW / 130.0
+	cornerPoints[2] -= minW / 130.0
+	cornerPoints[3][0] += minW / 130.0
+	cornerPoints[3][1] -= minW / 130.0
 	transPs = np.array([[0, 0], [imgSize[0], 0], [imgSize[0], imgSize[1]], [0, imgSize[1]]], dtype = np.float32)
 	transform = cv2.getPerspectiveTransform(cornerPoints, transPs)
-	# 调试：画出前景
+	# 画出前景
 	wimg3 = cv2.warpPerspective(src = originalImg, M = transform, dsize =  imgSize)
 	return wimg3
 
