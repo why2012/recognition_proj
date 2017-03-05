@@ -13,6 +13,9 @@ def grayImg(img):
 def getImgSize(img):
 	return (img.shape[1], img.shape[0])
 
+def swap(a, b):
+	return b, a
+
 # 根据宽高创建纯白图，宽高对应数组的列数和行数
 def createWhiteImg(size):
 	return np.uint8(np.ones((size[1], size[0])) * 255)
@@ -164,6 +167,7 @@ def expandLine(lines, thresh):
 			if d1 >= -5 and d1 <= 5:
 				newLine = [x1, y1, x2, y2]
 				f = newLine[1] - newLine[3]
+				f = int(float(f) / np.abs(f))
 				newLine[1] = newLine[1] + f * thresh
 				newLine[3] = newLine[3] - f * thresh
 			else:
@@ -173,7 +177,7 @@ def expandLine(lines, thresh):
 				newLine[1] = int(y1 - deltaY1)
 				newLine[2] = int(x2 + thresh)
 				newLine[3] = int(y2 + deltaY2)
-			newSublines.append(newLine) 
+			newSublines.append(newLine)
 		newLines.append(newSublines)
 	return newLines
 
@@ -192,35 +196,71 @@ def remainLine(lines, angles = [[0, 10], [80, 90]]):
 			else:
 				theta = np.arctan(np.abs(float(y1 - y2) / (x1 - x2))) * PI_DEGREE
 			for angle in angles:
-				if theta in range(angle[0], angle[1] + 1):
+				if theta >= angle[0] and theta <= angle[1]:
 					newSublines.append(newLine)
 					break
 		if len(newSublines) != 0:
 			newLines.append(newSublines)
 	return newLines
 
+# 计算两直线夹角
+def computeLineAngle(line1, line2):
+	dx1 = line1[2] - line1[0]
+	dx2 = line2[2] - line2[0]
+	dy1 = line1[3] - line1[1]
+	dy2 = line2[3] - line2[1]
+	dx1 /= 100
+	dx2 /= 100
+	dy1 /= 100
+	dy2 /= 100
+	theta =  np.arccos((dx1 * dx2 + dy1 * dy2) / np.sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2)))
+	theta = theta * 180.0 / np.pi
+	return theta
+
 # 两条直线交点
-def computeIntersect(a, b):
+# segment==True, 求线段交点, 允许thresh大小的误差
+def computeIntersect(a, b, segment = False, thresh = 100):
 	x1 = a[0]; y1 = a[1]; x2 = a[2]; y2 = a[3]; x3 = b[0]; y3 = b[1]; x4 = b[2]; y4 = b[3]  
 	d = float((x1 - x2) * (y3 - y4)) - (y1 - y2) * (x3 - x4)
 	if d != 0: 
 		pt = [0, 0]
 		pt[0] = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / d
-		pt[1] = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / d  
+		pt[1] = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / d 
+		if segment:
+			x = [x1, x2, x3, x4]
+			y = [y1, y2, y3, y4]
+			x.remove(min(x))
+			x.remove(max(x))
+			y.remove(min(y))
+			y.remove(max(y))
+			x.sort()
+			y.sort()
+			x[0] -= thresh
+			x[1] += thresh
+			y[0] -= thresh
+			y[1] += thresh
+			if (pt[0] < x[0] or pt[0] > x[1]) or (pt[1] < y[0] or pt[1] > y[1]):
+				pt = [-1, -1]
 		return pt
 	else:
 		return [-1, -1]
 
-# 直线交点
-def getIntersectPoints(lines, filterSize = None, thresh1 = 0, thresh2 = 0):
+# 线段交点
+# thresh1可以调整交点超出边界的程度
+def getIntersectPoints(lines, filterSize = None, thresh1 = 0):
 	length = len(lines)
 	points = []
 	for i in range(length):
 		for n in range(i, length):
-			point = computeIntersect(lines[i][0], lines[n][0])
+			# 防止近似平行线相交
+			angle = computeLineAngle(lines[i][0], lines[n][0])
+			thresh0 = 3
+			if angle <= thresh0 or angle >= 180 - thresh0:
+				continue
+			point = computeIntersect(lines[i][0], lines[n][0], True)
 			if point[0] != -1:
 				if filterSize:
-					if point[0] >= 0 and point[0] <= filterSize[0] - thresh1 and point[1] >= 0 and point[1] <= filterSize[1] - thresh2:
+					if point[0] >= 0 - thresh1 and point[0] <= filterSize[0] + thresh1 and point[1] >= 0 - thresh1 and point[1] <= filterSize[1] + thresh1:
 						points.append(point)
 				else:
 					points.append(point)
@@ -228,54 +268,91 @@ def getIntersectPoints(lines, filterSize = None, thresh1 = 0, thresh2 = 0):
 
 # 边角点
 def getBoundingCornerPoints(points, size):
-	centerP = (size[0] / 2.0, size[1] / 2.0)
-	topLeftPx = []
-	topLeftPy = []
-	topRightPx = []
-	topRightPy = []
-	bottomRightPx = []
-	bottomRightPy = []
-	bottomLeftPx = []
-	bottomLeftPy = []
+	points = np.array(points)
+	centerP = np.array([size[0] / 2.0, size[1] / 2.0])
+	topLeftPoint = [[0, 0], 0]
+	topRightPoint = [[size[0], 0], 0]
+	bottomRightPoint = [[size[0], size[1]], 0]
+	bottomLeftPoint = [[0, size[1]], 0]
 	for point in points:
+		length = np.sum((point - centerP) * (point - centerP))
 		# topLeft
 		if point[0] <= centerP[0] and point[1] <= centerP[1]:
-			topLeftPx.append(point[0])
-			topLeftPy.append(point[1])
+			if length > topLeftPoint[1]:
+				topLeftPoint[0] = point
+				topLeftPoint[1] = length
 		# topRight
 		elif point[0] >= centerP[0] and point[1] <= centerP[1]:
-			topRightPx.append(point[0])
-			topRightPy.append(point[1])
+			if length > topRightPoint[1]:
+				topRightPoint[0] = point
+				topRightPoint[1] = length
 		# bottomRight
 		elif point[0] >= centerP[0] and point[1] >= centerP[1]:
-			bottomRightPx.append(point[0])
-			bottomRightPy.append(point[1])
+			if length > bottomRightPoint[1]:
+				bottomRightPoint[0] = point
+				bottomRightPoint[1] = length
 		# bottomLeft
 		else:
-			bottomLeftPx.append(point[0])
-			bottomLeftPy.append(point[1])
-	if topLeftPx == []:
-		topLeftPx.append(0)
-	if bottomLeftPx == []:
-		bottomLeftPx.append(0)
-	if topLeftPy == []:
-		topLeftPy.append(0)
-	if topRightPy == []:
-		topRightPy.append(0)
-	if topRightPx == []:
-		topRightPx.append(size[0])
-	if bottomRightPx == []:
-		bottomRightPx.append(size[0])
-	if bottomRightPy == []:
-		bottomRightPy.append(size[1])
-	if bottomLeftPy == []:
-		bottomLeftPy.append(size[1])
+			if length > bottomLeftPoint[1]:
+				bottomLeftPoint[0] = point
+				bottomLeftPoint[1] = length
 
-	topLeftPoint = [min(topLeftPx), min(topLeftPy)]
-	topRightPoint = [max(topRightPx), min(topRightPy)]
-	bottomRightPoint = [max(bottomRightPx), max(bottomRightPy)]
-	bottomLeftPoint = [min(bottomLeftPx), max(bottomLeftPy)]
-	return np.array([topLeftPoint, topRightPoint, bottomRightPoint, bottomLeftPoint], dtype = np.float32)
+	return np.array([topLeftPoint[0], topRightPoint[0], bottomRightPoint[0], bottomLeftPoint[0]], dtype = np.float32)
+
+# 求众数, 允许+-thresh误差, 若merge != 0, 则分别把+-前merge个连续符号的统计结果合并, 并且只返回合并后的+-两个结果
+# [(elem, [count, [indexes]]), ...]
+# merge: [([elem1, elem2, ...], [count, [indexes]]), ...]
+def findMode(data, thresh = 1, merge = 2):
+	# {[count, [indexes]]}
+	elemMap = {}
+	for index, elem in enumerate(data):
+		finded = False
+		if elem in elemMap:
+			elemMap[elem][0] += 1
+			elemMap[elem][1].append(index)
+			finded = True
+		elif thresh != 0:
+			if elem + thresh in elemMap:
+				elemMap[elem + thresh][0] += 1
+				elemMap[elem + thresh][1].append(index)
+				finded = True
+			if elem - thresh in elemMap:
+				elemMap[elem - thresh][0] += 1
+				elemMap[elem - thresh][1].append(index)
+				finded = True
+		if not finded:
+			elemMap[elem] = [1, [index]]
+	# [(elem, [count, [indexes]])]
+	elemMap = sorted(elemMap.items(), key=lambda e:e[1][0], reverse=True)
+	if merge != 0:
+		if merge < 0:
+			merge = max(0, len(elemMap) + merge)
+		newElemMap = [([], [0, []]), ([], [0, []])]
+		for index, modeR in enumerate(elemMap):
+			if modeR[0] >= 0:
+				newElemMap[0][0].append(modeR[0])
+				newElemMap[0][1][0] += modeR[1][0]
+				newElemMap[0][1][1].extend(modeR[1][1])
+			else:
+				newElemMap[1][0].append(modeR[0])
+				newElemMap[1][1][0] += modeR[1][0]
+				newElemMap[1][1][1].extend(modeR[1][1])
+			if index >= merge:
+				break
+		elemMap = newElemMap
+	return elemMap
+
+# 直线倾角
+def findAngle(lines):
+	angles = []
+	if lines is None:
+		return angles
+	for sublines in lines:
+		for x1, y1, x2, y2 in sublines:
+			length = np.sqrt((y1 - y2) * (y1 - y2) + (x1 - x2) * (x1 - x2)) 
+			angle = np.arcsin((y1 - y2) / length) * 180 / np.pi
+			angles.append(np.round(angle))
+	return angles
 
 # main function
 def houghRectify(img):
@@ -288,26 +365,29 @@ def houghRectify(img):
 	maxW = max(img.shape)
 	img = cv2.blur(img, (4, 4))
 	# 画出轮廓
-	edges = cv2.Canny(img, 50, 200, apertureSize = 3)
-	# 调试: 整体轮廓
-	# wimg = createWhiteImg(getImgSize(img))
-	lines = cv2.HoughLinesP(edges, 1, np.pi / 360, 50, minLineLength = 10, maxLineGap = 20)
-	lines = expandLine(lines, int(maxW))
-	# 过滤掉不符合角度要求的线段
-	lines = remainLine(lines)
-	# 调试：画出边线
-	# drawLines(wimg, lines)
+	edges = cv2.Canny(img, 10, 50, apertureSize = 3)
+	# edges = sobel(img)
+	# edges = cv2.blur(edges, (8, 8))
+	# edges = erosion(edges, iterations = 1)
+	edges0 = dilation(edges, iterations = 2)
+	edges = cv2.Canny(edges0, 10, 50, apertureSize = 3)
+	lines = np.array(cv2.HoughLinesP(edges, 1, np.pi / 360, 50, minLineLength = 100, maxLineGap = 50))
+	# 求倾角众数
+	mode = findMode(findAngle(lines), 5, 5)
+	mode[0][1][1].extend(mode[1][1][1])
+	lines = lines[mode[0][1][1]]
 	# 计算交点
 	intersectPoints = getIntersectPoints(lines, imgSize)
 	cornerPoints = getBoundingCornerPoints(intersectPoints, imgSize)
+	# 微调, 收缩边框
+	# cornerPoints[0] += minW / 100
+	# cornerPoints[1] += minW / 100
+	# cornerPoints[2] -= minW / 100
+	# cornerPoints[3] -= minW / 100
 	transPs = np.array([[0, 0], [imgSize[0], 0], [imgSize[0], imgSize[1]], [0, imgSize[1]]], dtype = np.float32)
 	transform = cv2.getPerspectiveTransform(cornerPoints, transPs)
-	# 调试:画出边框
-	# wimg2 = createWhiteImg(imgSize)
-	# drawRectP4(wimg2, np.array(cornerPoints).astype(np.int32))
-	# 画出前景
+	# 调试：画出前景
 	wimg3 = cv2.warpPerspective(src = originalImg, M = transform, dsize =  imgSize)
-	# showImg(edges, wimg, wimg2, wimg3)
 	return wimg3
 
 # 从填涂区域包围框中选出正确的填涂框, 并计算中心坐标
