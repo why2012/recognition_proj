@@ -4,11 +4,17 @@ from lib.ScantronAnalyzeCV import *
 from util.ErrorCode import *
 import cv2
 import numpy as np
+import urllib2 as url
 
 class ScantronRecogController(BaseController):
 	def execute(self):
 		self.checkParams()
-		img = self.processUpFile("card")
+		if not self.cardUrl:
+			img = self.processUpFile("card")
+		else:
+			# 从其他地方获取图片
+			res = url.urlopen(self.cardUrl)
+			img = res.read()
 		img = cv2.imdecode(np.fromstring(img, np.uint8), cv2.IMREAD_COLOR)# IMREAD_GRAYSCALE
 		details = {}
 		details["area"] = self.area
@@ -32,6 +38,10 @@ class ScantronRecogController(BaseController):
 			raise ErrorStatusException("row must be a positive number", STATUS_PARAM_ERROR)
 		self.col = col
 		self.row = row
+		if not self.fileExist("card"):
+			self.cardUrl = self.getStrArg("card")
+		else:
+			self.cardUrl = None
 
 	def recog(self, img, details):
 		return readCard(img, details)

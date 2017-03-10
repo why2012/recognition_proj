@@ -35,6 +35,12 @@ class BaseController(web.RequestHandler):
 	def setResult(self, ans = [], status = "", msg = ""):
 		self.result = {"status": status, "ans": ans, "msg": msg}
 
+	def fileExist(self, name = "file"):
+		if name in self.request.files:
+			return True
+		else: 
+			return False
+
 	def processUpFile(self, name = "file", raiseException = True):
 		if name in self.request.files:
 			fileMetas = self.request.files[name]

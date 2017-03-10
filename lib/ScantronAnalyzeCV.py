@@ -370,19 +370,21 @@ def houghRectify(img):
 	edges = cv2.Canny(edges0, 10, 50, apertureSize = 3)
 	lines = np.array(cv2.HoughLinesP(edges, 1, np.pi / 360, 50, minLineLength = 100, maxLineGap = 50))
 	# 求倾角众数
-	mode = findMode(findAngle(lines), 5, 5)
+	mode = findMode(findAngle(lines), 7, 9)
 	mode[0][1][1].extend(mode[1][1][1])
 	lines = lines[mode[0][1][1]]
 	# 计算交点
 	intersectPoints = getIntersectPoints(lines, imgSize)
 	cornerPoints = getBoundingCornerPoints(intersectPoints, imgSize)
 	# 微调, 收缩边框
-	cornerPoints[0] += minW / 130.0
-	cornerPoints[1][0] -= minW / 130.0
-	cornerPoints[1][1] += minW / 130.0
-	cornerPoints[2] -= minW / 130.0
-	cornerPoints[3][0] += minW / 130.0
-	cornerPoints[3][1] -= minW / 130.0
+	thresh = 190.0
+	threshZero = 1.0
+	cornerPoints[0] += minW / thresh * threshZero
+	cornerPoints[1][0] -= minW / thresh * threshZero
+	cornerPoints[1][1] += minW / thresh * threshZero
+	cornerPoints[2] -= minW / thresh * threshZero
+	cornerPoints[3][0] += minW / thresh * threshZero
+	cornerPoints[3][1] -= minW / thresh * threshZero
 	transPs = np.array([[0, 0], [imgSize[0], 0], [imgSize[0], imgSize[1]], [0, imgSize[1]]], dtype = np.float32)
 	transform = cv2.getPerspectiveTransform(cornerPoints, transPs)
 	# 画出前景
