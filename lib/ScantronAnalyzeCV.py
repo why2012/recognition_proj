@@ -477,10 +477,6 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 
 # main function
 def readCard(img, details = []):
-	# 增加亮度和对比度, 加高光可以突出黑色区域， 弱化灰色区域
-	# img = cv2.convertScaleAbs(img, alpha = 1.3, beta = 20)
-	# 确定裁剪范围，row1,row2,col1,col2
-	# areas = [[245, 325, 320, 480], [250, 325, 485, 615], [245, 325, 10, 615]]
 	if "area" not in details or not details["area"]:
 		area = None 
 	else:
@@ -494,11 +490,11 @@ def readCard(img, details = []):
 	# otsu二值化
 	img = binaryInv(img)
 	# 低通滤波
-	img = cv2.blur(img, (3, 3))
+	# img = cv2.blur(img, (3, 3))
 	# 腐蚀, 实际效果为涂抹填涂区域
 	# img = erosion(img)
 	# 膨胀， 实际效果为缩小填涂区域
-	img = dilation(img, iterations = 1)
+	# img = dilation(img, iterations = 1)
 	# 裁剪
 	if area:
 		rectImg01 = img[area[0]: area[1], area[2]: area[3]]
@@ -523,7 +519,7 @@ def readCard(img, details = []):
 	# ansMap = determineAnswer(ansBoxCenter, 5, 4, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1])
 	# 四个题组
 	ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
-		, restrictArea = True, restrictAreaThresh = 0.05)
+		, restrictArea = True, restrictAreaThresh = 0.00)
 	# 调试:画出轮廓
 	# showImg(rectImg01, whiteImg)	
 	return ansMap
