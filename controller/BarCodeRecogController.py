@@ -6,10 +6,17 @@ import PIL.Image as Image
 import numpy as np
 import zbar
 import cv2
+import urllib2 as url
 
 class BarCodeRecogController(BaseController):
 	def execute(self):
-		rawData = self.processUpFile("barcode")
+		self.checkParams()
+		if not self.barcodeUrl:
+			rawData = self.processUpFile("barcode")
+		else:
+			# 从其他地方获取图片
+			res = url.urlopen(self.barcodeUrl)
+			rawData = res.read()
 		img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_GRAYSCALE)# IMREAD_COLOR
 		img = Image.fromarray(img)
 		w, h = img.size
@@ -22,3 +29,9 @@ class BarCodeRecogController(BaseController):
 			break
 		del zbarImg
 		self.setResult(resultCode, STATUS_OK)
+
+	def checkParams(self):
+		if not self.fileExist("barcode"):
+			self.barcodeUrl = self.getStrArg("barcode")
+		else:
+			self.barcodeUrl = None
