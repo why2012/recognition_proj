@@ -15,6 +15,7 @@ class BaseController(web.RequestHandler):
 		self.logger.addFilter(InfoDebugFilter())
 		self.loggerWaning.addFilter(WarngingFilter())
 		self.loggerError.addFilter(ErrorFilter())
+		self.__args = {}
 
 	def post(self):
 		self.invokeExecute()
@@ -65,10 +66,19 @@ class BaseController(web.RequestHandler):
 			raise ErrorStatusException(name + " must not be None", STATUS_PARAM_ERROR)
 
 	def getIntArg(self, key, default = -1):
-		return int(self.get_argument(key, default))
+		return int(self.getArg(key, default))
 
 	def getStrArg(self, key, default = ""):
-		return self.get_argument(key, default)
+		return self.getArg(key, default)
+
+	def getArg(self, key, default = None):
+		if key in self.__args:
+			return self.__args[key]
+		arg = self.get_argument(key, default)
+		return arg
+
+	def setArg(self, key, value):
+		self.__args[key] = value
 
 	def oneLine(self, msg):
 		msg = msg.replace("\n", " | ")  

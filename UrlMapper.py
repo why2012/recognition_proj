@@ -2,6 +2,8 @@
 from controller.TestController import TestController
 from controller.ScantronRecogController import ScantronRecogController
 from controller.BarCodeRecogController import BarCodeRecogController
+from controller.ScoreMarkingController import ScoreMarkingController
+from controller.StudentIdRecogController import StudentIdRecogController
 
 class UrlMapper(object):
 
@@ -9,7 +11,9 @@ class UrlMapper(object):
 		self.mapper = [
 			(r"/test", TestController),
 			(r"/recog", ScantronRecogController),
-			(r"/barcode", BarCodeRecogController)
+			(r"/barcode", BarCodeRecogController),
+			(r"/markingScore", ScoreMarkingController),
+			(r"/studentIdRecog", StudentIdRecogController)
 		]	
 
 	def getMapper(self):

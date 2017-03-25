@@ -24,7 +24,7 @@ class ScantronRecogController(BaseController):
 		self.setResult(self.recog(img, details).T.tolist(), STATUS_OK)
 
 	def checkParams(self):
-		area = self.get_argument("area", "")
+		area = self.getArg("area", "")
 		if area.strip():
 			self.area = self.jsonLoad(area)
 		else:
