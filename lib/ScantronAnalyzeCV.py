@@ -476,7 +476,7 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 	return answerMap
 
 # main function
-def readCard(img, details = []):
+def readCard(img, details = [], mode = "noise"):
 	if "area" not in details or not details["area"]:
 		area = None 
 	else:
@@ -490,11 +490,13 @@ def readCard(img, details = []):
 	# otsu二值化
 	img = binaryInv(img)
 	# 低通滤波
-	# img = cv2.blur(img, (3, 3))
+	if mode == "noise":
+		img = cv2.blur(img, (3, 3))
 	# 腐蚀, 实际效果为涂抹填涂区域
 	# img = erosion(img)
 	# 膨胀， 实际效果为缩小填涂区域
-	# img = dilation(img, iterations = 1)
+	if mode == "noise":
+		img = dilation(img, iterations = 1)
 	# 裁剪
 	if area:
 		rectImg01 = img[area[0]: area[1], area[2]: area[3]]

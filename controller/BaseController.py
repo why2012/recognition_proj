@@ -15,6 +15,7 @@ class BaseController(web.RequestHandler):
 		self.logger.addFilter(InfoDebugFilter())
 		self.loggerWaning.addFilter(WarngingFilter())
 		self.loggerError.addFilter(ErrorFilter())
+		self.__argsNameMapper = {}
 		self.__args = {}
 
 	def post(self):
@@ -31,7 +32,7 @@ class BaseController(web.RequestHandler):
 			self.loggerWaning.warn(self.oneLine(e.getMsg() + "\n" + traceback.format_exc()))
 		except Exception, e:
 			self.setResult(status = STATUS_SCAN_ERROR, msg = "Internal Error: " + repr(type(e)) + ", " + str(e))
-			self.loggerError.error(self.oneLine(e.getMsg() + "\n" + traceback.format_exc()))
+			self.loggerError.error(self.oneLine(str(e) + "\n" + traceback.format_exc()))
 		finally:
 			self.jsonWrite(self.result)
 
@@ -39,10 +40,10 @@ class BaseController(web.RequestHandler):
 		pass
 
 	def jsonWrite(self, data):
-		self.write(json.dumps(data))
+		self.write(json.dumps(data, ensure_ascii=False))
 
 	def jsonDump(self, data):
-		return json.dumps(data)
+		return json.dumps(data, ensure_ascii=False)
 
 	def jsonLoad(self, data):
 		return json.loads(data)
@@ -50,13 +51,21 @@ class BaseController(web.RequestHandler):
 	def setResult(self, ans = [], status = "", msg = ""):
 		self.result = {"status": status, "ans": ans, "msg": msg}
 
+	def getResult(self):
+		if self.result:
+			return self.result
+		else:
+			return None
+
 	def fileExist(self, name = "file"):
+		name = self.__getArgName(name)
 		if name in self.request.files:
 			return True
 		else: 
 			return False
 
 	def processUpFile(self, name = "file", raiseException = True):
+		name = self.__getArgName(name)
 		if name in self.request.files:
 			fileMetas = self.request.files[name]
 			if fileMetas:
@@ -66,12 +75,22 @@ class BaseController(web.RequestHandler):
 			raise ErrorStatusException(name + " must not be None", STATUS_PARAM_ERROR)
 
 	def getIntArg(self, key, default = -1):
-		return int(self.getArg(key, default))
+		arg = self.getArg(key, default)
+		if not arg or arg is None:
+			return default
+		return int(arg)
+
+	def getFloatArg(self, key, default = -1):
+		arg = self.getArg(key, default)
+		if not arg or arg is None:
+			return default
+		return float(arg)
 
 	def getStrArg(self, key, default = ""):
 		return self.getArg(key, default)
 
 	def getArg(self, key, default = None):
+		key = self.__getArgName(key)
 		if key in self.__args:
 			return self.__args[key]
 		arg = self.get_argument(key, default)
@@ -79,6 +98,15 @@ class BaseController(web.RequestHandler):
 
 	def setArg(self, key, value):
 		self.__args[key] = value
+
+	def changeArgName(self, key, newName):
+		self.__argsNameMapper[key] = newName
+
+	def __getArgName(self, name):
+		if name in self.__argsNameMapper:
+			return self.__argsNameMapper[name]
+		else:
+			return name 
 
 	def oneLine(self, msg):
 		msg = msg.replace("\n", " | ")  

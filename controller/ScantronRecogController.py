@@ -8,7 +8,7 @@ import urllib2 as url
 
 class ScantronRecogController(BaseController):
 	def execute(self):
-		self.checkParams()
+		ScantronRecogController.checkParams(self)
 		if not self.cardUrl:
 			img = self.processUpFile("card")
 		else:
@@ -23,6 +23,7 @@ class ScantronRecogController(BaseController):
 		details["groupCount"] = self.groupCount
 		self.setResult(self.recog(img, details).T.tolist(), STATUS_OK)
 
+	@staticmethod
 	def checkParams(self):
 		area = self.getArg("area", "")
 		if area.strip():
