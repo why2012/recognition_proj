@@ -20,8 +20,8 @@ class ScoreMarkingController(ScantronRecogController):
 		stuScore = []
 		# 每题选项
 		stuSelection = []
+		# 遍历每道题
 		for ansIndex, answerSingles in enumerate(standAns):
-			stuSelection.append(["-"] * len(standAns))
 			answerSingles = answerSingles.split(",")
 			# 正确选项个数
 			ansCount = len(answerSingles)
@@ -32,15 +32,23 @@ class ScoreMarkingController(ScantronRecogController):
 				cardAns =  ansMat[ansIndex]
 			elif direction == conf.choiceDirection["vertical"]:
 				cardAns =  ansMat[:, ansIndex]
+			if cardAns.tolist() == [0] * len(cardAns):
+				stuSelection.append(["-"])
+			else:
+				stuSelection.append([])
 			# 对应answerSingles的序号
 			choiceIndex = 0
+			shouldBreak = False
+			# 遍历每个选项
 			for cardAnsIndex, cardAnsNumber in enumerate(cardAns):
 				if choiceIndex < len(answerSingles):
 					ansNumber = answerSingles[choiceIndex];
 				else:
 					ansNumber = -1
 				if cardAnsNumber != 0:
-					stuSelection[ansIndex][cardAnsIndex] = chr(cardAnsIndex + ord("a")).upper()
+					stuSelection[ansIndex].append(chr(cardAnsIndex + ord("a")).upper())
+				if shouldBreak:
+					continue
 				# 将字母选项映射为数字序号
 				if ansNumber != -1:
 					ansNumber = ord(ansNumber) - ord("a")
@@ -54,7 +62,7 @@ class ScoreMarkingController(ScantronRecogController):
 				# 错选, 0分
 				if ansNumber == -1 and cardAnsNumber == 1:
 					stuAnsTotal = 0
-					break
+					shouldBreak = True
 				# 没有选此选项，继续判定
 				if ansNumber == -1:
 					continue
