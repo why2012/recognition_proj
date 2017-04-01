@@ -521,7 +521,7 @@ def readCard(img, details = [], mode = "noise"):
 	# ansMap = determineAnswer(ansBoxCenter, 5, 4, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1])
 	# 四个题组
 	ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
-		, restrictArea = True, restrictAreaThresh = 0.00)
+		, restrictArea = True, restrictAreaThresh = 0.20)
 	# 调试:画出轮廓
 	# showImg(rectImg01, whiteImg)	
 	return ansMap
