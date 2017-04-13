@@ -124,11 +124,13 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 
 # service
 # 滑动窗口匹配，从上往下, 窗口高度默认10%, 每个窗口配对一个子窗口
-def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.1, showImg = False):
+# 默认进行下采样
+def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.1, showImg = False, pyrDown = True):
 	# imgFeature = cv2.pyrDown(imgFeature)
 	# 下采样
 	imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
-	imgDest = cv2.pyrDown(imgDest, dstsize = (imgDestWOrigin / 2, imgDestHOrigin / 2))
+	if pyrDown:
+		imgDest = cv2.pyrDown(imgDest, dstsize = (imgDestWOrigin / 2, imgDestHOrigin / 2))
 	# imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
 	# imgDest = cv2.pyrDown(imgDest, dstsize = (imgDestWOrigin / 2, imgDestHOrigin / 2))
 
@@ -206,6 +208,8 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.1, showImg = Fal
 		imgBoundingBox = cv2.polylines(imgDest.copy(), np.int32(boundingBox), True, (0, 255, 0), 3, cv2.LINE_AA)
 		cv2.imshow("img", imgBoundingBox)
 		cv2.waitKey(10)
+	if pyrDown:
+		boundingBox = np.array(boundingBox) * 2
 	return boundingBox
 
 
