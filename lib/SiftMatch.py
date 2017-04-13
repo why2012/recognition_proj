@@ -125,6 +125,7 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 # service
 # 滑动窗口匹配，从上往下, 窗口高度默认10%, 每个窗口配对一个子窗口
 # 默认进行下采样
+# boudingBox = siftM.siftMatchVertical(imgFeature, imgDest, 0.05)
 def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.1, showImg = False, pyrDown = True):
 	# imgFeature = cv2.pyrDown(imgFeature)
 	# 下采样

@@ -67,6 +67,12 @@ def getLinesFromPolarCoord(polarLines, thresh = 4000):
 		lines.append(subline)
 	return lines
 
+# 划线中心点识别
+# r1 = int(boudingBox[1][0][1])
+# r2 = int(boudingBox[1][3][1])
+# c1 = int(boudingBox[1][0][0])
+# c2 = int(boudingBox[1][1][0])
+# cm.lineMarking(imgDest02[r1:r2, c1:c2], True)
 def lineMarking(img, drawImg = False):
 	imgOrigin = img
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -82,7 +88,7 @@ def lineMarking(img, drawImg = False):
 	linesTrain = lines - (min(lines[:, 0]), min(lines[:, 1]))
 	linesTrain[:, 1] = linesTrain[:, 1] * 100
 	# 根据倾角聚类
-	db = DBSCAN(eps = 20).fit(linesTrain)
+	db = DBSCAN(eps = 10).fit(linesTrain)
 	labelSet = set(db.labels_)
 	newLines = []
 	# 得到n类数据，每一类取平均值
@@ -96,7 +102,7 @@ def lineMarking(img, drawImg = False):
 	minLen = min(img.shape)
 	maxLen = max(img.shape)
 	lines = getLinesFromPolarCoord(lines, maxLen)
-	print lines
+	# print lines
 	# 计算中心点
 	centroid = []
 	for lineItem in lines:
