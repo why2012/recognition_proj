@@ -5,6 +5,7 @@ import logging
 import traceback
 from util.ErrorCode import *
 from lib.LoggerFilters import *
+import platform
 
 class BaseController(web.RequestHandler):
 	def initialize(self):
@@ -18,6 +19,10 @@ class BaseController(web.RequestHandler):
 		self.__argsNameMapper = {}
 		self.__args = {}
 
+		self.result = None
+
+		self.version = platform.python_version_tuple()
+
 	def post(self):
 		self.invokeExecute()
 
@@ -29,12 +34,13 @@ class BaseController(web.RequestHandler):
 			self.execute()
 		except ErrorStatusException, e:
 			self.setResult(status = e.getCode(), msg = e.getMsg())
-			self.loggerWaning.warn(self.oneLine(e.getMsg() + "\n" + traceback.format_exc()))
+			self.loggerWaning.warn(self.oneLine(str(self.getAllArgs()) + "; " + e.getMsg() + "\n" + traceback.format_exc()))
 		except Exception, e:
 			self.setResult(status = STATUS_SCAN_ERROR, msg = "Internal Error: " + repr(type(e)) + ", " + str(e))
-			self.loggerError.error(self.oneLine(str(e) + "\n" + traceback.format_exc()))
+			self.loggerError.error(self.oneLine(str(self.getAllArgs()) + "; " + str(e) + "\n" + traceback.format_exc()))
 		finally:
-			self.jsonWrite(self.result)
+			if self.result is not None:
+				self.jsonWrite(self.result)
 
 	def execute(self):
 		pass
@@ -98,6 +104,13 @@ class BaseController(web.RequestHandler):
 
 	def setArg(self, key, value):
 		self.__args[key] = value
+
+	def getAllArgs(self):
+		argNames = self.request.arguments
+		args = {}
+		for argName in argNames:
+			args[argName] = self.get_argument(argName)
+		return args
 
 	def changeArgName(self, key, newName):
 		self.__argsNameMapper[key] = newName

@@ -21,6 +21,21 @@ def drawLines(img, lines, color = (0, 0, 0), thickness = 1):
 def degreeToPolar(degree):
 	return degree * (np.pi / 180.0)
 
+def getKernel(size):
+	kernel = np.uint8(np.zeros(size))
+	kw, kh = kernel.shape
+	for x in range(kh):  
+		kernel[x, kw / 2] = 1 
+	for x in range(kw):  
+		kernel[kh / 2, x] = 1 
+	return kernel
+
+def erosion(grayImg, kernel = getKernel((4, 4)), iterations = 1):
+	return cv2.erode(grayImg, kernel, iterations = iterations)
+
+def dilation(grayImg, kernel = getKernel((4, 4)), iterations = 1):
+	return cv2.dilate(grayImg, kernel, iterations = iterations)  
+
 # 两条直线交点
 # segment==True, 求线段交点, 允许thresh大小的误差
 def computeIntersect(a, b, segment = False, thresh = 100):
@@ -68,6 +83,8 @@ def getLinesFromPolarCoord(polarLines, thresh = 4000):
 	return lines
 
 # 划线中心点识别
+# 为了保证效果， 目标图片尺寸和清晰度必须大
+# return centroid points
 # r1 = int(boudingBox[1][0][1])
 # r2 = int(boudingBox[1][3][1])
 # c1 = int(boudingBox[1][0][0])
@@ -76,14 +93,20 @@ def getLinesFromPolarCoord(polarLines, thresh = 4000):
 def lineMarking(img, drawImg = False):
 	imgOrigin = img
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	img = cv2.GaussianBlur(img, (5, 5), 0)
-	img = cv2.Canny(img, 10, 50, apertureSize = 3)
-	lines = cv2.HoughLines(img, 1, np.pi / 360, 40)
+	img = cv2.GaussianBlur(img, (11, 11), 0)
+	img = cv2.Canny(img, 25, 50, apertureSize = 3)
+	# img = erosion(img, getKernel((3, 3)))
+	# img = dilation(img, getKernel((3, 3)))
+	lines = cv2.HoughLines(img, 1, np.pi / 360, 50)
 	lines = np.array(lines)
+	if not lines.any():
+		return []
 	# 与y轴的张角
 	# angle <= 60' & angle > 5'
 	# lines: [r, theta]
 	lines = lines[(lines[:, :, 1] <= degreeToPolar(70)) & (lines[:, :, 1] >= degreeToPolar(5))]
+	if not lines.any():
+		return []
 	# 预处理
 	linesTrain = lines - (min(lines[:, 0]), min(lines[:, 1]))
 	linesTrain[:, 1] = linesTrain[:, 1] * 100

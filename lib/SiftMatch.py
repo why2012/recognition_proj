@@ -86,6 +86,22 @@ def NMS(boundingBox, boundingBoxAttr):
 		newBoundingBox.append(max(boundingBoxGroupItem, key = lambda i: i[1])[0])
 	return newBoundingBox
 
+# 按面积过滤
+def areaFilter(boundingBox):
+	newBoundingBox = []
+	boundingBox = np.array(boundingBox)
+	x1 = boundingBox[:, 0, 0]
+	x2 = boundingBox[:, 1, 0]
+	y1 = boundingBox[:, 0, 1]
+	y2 = boundingBox[:, 3, 1]
+	avgArea = np.sum(np.abs((x1 - x2) * (y1 - y2))) / len(boundingBox)
+	for boundingBoxItem in boundingBox:
+		p1, p2, p3, p4 = boundingBoxItem
+		boxArea = np.abs((p1[0] - p2[0]) * (p1[1] - p4[1]))
+		if boxArea > avgArea * 0.4:
+			newBoundingBox.append(boundingBoxItem)
+	return newBoundingBox
+
 # imgFeature = cv2.imread("pics/IMG_1203.JPG")
 # imgDest = cv2.imread("pics/IMG_1205_SRC.JPG")
 # imgDest2 = cv2.imread("pics/IMG_1205_SRC2.JPG")
@@ -125,8 +141,13 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 # service
 # 滑动窗口匹配，从上往下, 窗口高度默认10%, 每个窗口配对一个子窗口
 # 默认进行下采样
+# return boundingBox
 # boudingBox = siftM.siftMatchVertical(imgFeature, imgDest, 0.05)
-def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.1, showImg = False, pyrDown = True):
+
+# imgFeature02Resize = cv2.resize(imgFeature02, (860, 32))
+# imgFeature03Resize = cv2.resize(imgFeature03, (860, 32))
+# imgFeatureMix = np.uint8(imgFeature * 0.3 + imgFeature02Resize * 0.6 + imgFeature03Resize * 0.1)
+def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = True):
 	# imgFeature = cv2.pyrDown(imgFeature)
 	# 下采样
 	imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
@@ -203,6 +224,8 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.1, showImg = Fal
 				boundingBoxAttr.append(len(kpPairs))
 			# if showImg:
 			# 	explore_match('matches' + str(windowYPos), imgFeatureGray, cv2.cvtColor(windowImg, cv2.COLOR_BGR2GRAY), kpPairs) 
+	# 面积过滤
+	boundingBox = areaFilter(boundingBox)
 	# 极大值抑制，消除重叠包围框
 	boundingBox = NMS(boundingBox, boundingBoxAttr)
 	if showImg:

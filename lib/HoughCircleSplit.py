@@ -99,8 +99,9 @@ def determingCorrectCircles(circles, whRatio):
 	return [], (), []
 
 
-# main function, paperW,paperH: 目标区域宽高(相对比例), blockList = [(0.3,0.3,0.5,0.5), ]左上右下
-def circleSplit(originalImg, paperW, paperH, blockList = None, scaleThresh = 0.3):
+# main function, paperW,paperH: 目标区域宽高(相对比例)
+# return split image
+def circleSplit(originalImg, paperW, paperH, scaleThresh = 0.5):
 	imgSize = getImgSize(originalImg)
 	w, h = imgSize
 	# 按比例缩放
@@ -110,6 +111,7 @@ def circleSplit(originalImg, paperW, paperH, blockList = None, scaleThresh = 0.3
 	minWH = np.min((w, h))
 	originalImg = cv2.resize(originalImg, (w, h))
 	img = grayImg(originalImg)
+	# cv2.imwrite("resources/test.jpg", img)
 	# 切割结果
 	splitArea = np.array([])
 	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, minWH * 0.08, param1 = 60, param2 = 20, minRadius = int(np.ceil(3 * scaleThresh)), maxRadius = int(50 * scaleThresh))
