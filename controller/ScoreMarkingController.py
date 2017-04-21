@@ -1,5 +1,5 @@
 # coding: utf-8
-from ScantronRecogController import *
+from lib.ScantronAnalyzeCV import *
 import numpy as np
 import conf.Config as conf
 

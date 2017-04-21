@@ -7,6 +7,7 @@ from controller.StudentIdRecogController import StudentIdRecogController
 from controller.HoughCircleSplitController import HoughCircleSplitController
 from controller.SiftMatchController import SiftMatchController
 from controller.CustomMarkingController import CustomMarkingController
+from controller.QuestionAreaMatchController import QuestionAreaMatchController
 
 class UrlMapper(object):
 
@@ -19,7 +20,8 @@ class UrlMapper(object):
 			(r"/studentIdRecog", StudentIdRecogController),
 			(r"/paperSplit", HoughCircleSplitController),
 			(r"/paperMatch", SiftMatchController),
-			(r"/lineMarking", CustomMarkingController)
+			(r"/lineMarking", CustomMarkingController),
+			(r"/questionAreaMatch", QuestionAreaMatchController)
 		]	
 
 	def getMapper(self):

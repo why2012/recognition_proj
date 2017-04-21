@@ -1,7 +1,7 @@
 #coding:utf-8
 import cv2
 import numpy as np
-
+#3348, 763 1282 1801
 def filter_matches(kp1, kp2, matches, ratio = 0.75):  
 	mkp1, mkp2 = [], []  
 	for m in matches:  
@@ -90,6 +90,8 @@ def NMS(boundingBox, boundingBoxAttr):
 def areaFilter(boundingBox):
 	newBoundingBox = []
 	boundingBox = np.array(boundingBox)
+	if len(boundingBox) == 0:
+		return newBoundingBox
 	x1 = boundingBox[:, 0, 0]
 	x2 = boundingBox[:, 1, 0]
 	y1 = boundingBox[:, 0, 1]
@@ -214,7 +216,7 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 						windowImg = windowImgItem
 		if p1 is not None and p2 is not None and kpPairs != [] and windowYPos != -1:
 			# 求出映射矩阵
-			M, mask = cv2.findHomography(p1, p2, cv2.RANSAC, 5.0)
+			M, mask = cv2.findHomography(p1, p2, cv2.RANSAC)
 			if M is not None:
 				# 执行映射
 				dst = cv2.perspectiveTransform(featurePts, M)
@@ -228,6 +230,117 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 	boundingBox = areaFilter(boundingBox)
 	# 极大值抑制，消除重叠包围框
 	boundingBox = NMS(boundingBox, boundingBoxAttr)
+	if showImg:
+		imgBoundingBox = cv2.polylines(imgDest.copy(), np.int32(boundingBox), True, (0, 255, 0), 1, cv2.LINE_AA)
+		cv2.imshow("img", imgBoundingBox)
+		cv2.waitKey(10)
+	if pyrDown:
+		boundingBox = np.array(boundingBox) * 2
+	return boundingBox
+
+# 按匹配的特征点数量选择模板，在匹配短区域时短模板吃亏，按特征点占比选择，在匹配长区域时长模板吃亏
+def siftMatchVerticalMulti(imgFeatures, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = True):
+	# imgFeature = cv2.pyrDown(imgFeature)
+	# 下采样
+	imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
+	if pyrDown:
+		imgDest = cv2.pyrDown(imgDest, dstsize = (imgDestWOrigin / 2, imgDestHOrigin / 2))
+	# imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
+	# imgDest = cv2.pyrDown(imgDest, dstsize = (imgDestWOrigin / 2, imgDestHOrigin / 2))
+	imgFeatureGrays = []
+	featurePtsList = []
+	for imgFeature in imgFeatures:
+		imgFeatureGray = cv2.cvtColor(imgFeature, cv2.COLOR_BGR2GRAY)
+		imgFeatureGrays.append(imgFeatureGray)
+		imgFeatureH, imgFeatureW = imgFeatureGray.shape
+		featurePts = np.float32([[0, 0], [imgFeatureW - 1, 0], [imgFeatureW - 1, imgFeatureH - 1], [0, imgFeatureH - 1]])
+		featurePts = featurePts.reshape(-1, 1, 2)
+		featurePtsList.append(featurePts)
+	imgDestGray = cv2.cvtColor(imgDest, cv2.COLOR_BGR2GRAY)
+	imgDestH, imgDestW = imgDestGray.shape
+	# 窗口高度
+	windowHeight = int(imgDestH * windowHeightRate)
+	windowRange = range(0, imgDestH, int(windowHeight))
+	windowRangeExtend = []
+	# 生成子窗口
+	for windowYPos in windowRange:
+		extendH = windowYPos + windowHeight / 2.0
+		if extendH <= imgDestH - windowHeight:
+			windowRangeExtend.append([windowYPos, extendH])
+	windowRange = windowRangeExtend
+	windowRange = np.int32(windowRange)
+	sift = cv2.xfeatures2d.SIFT_create(nOctaveLayers = 5)
+	# surf = cv2.xfeatures2d.SURF_create();
+	method = sift
+	bf = cv2.BFMatcher(cv2.NORM_L2)
+	# 提取模板特征
+	featuresList = []
+	for imgFeature in imgFeatureGrays:
+		(kpsFeatureImg, descsFeatureImg) = method.detectAndCompute(imgFeature, None)
+		featuresList.append((kpsFeatureImg, descsFeatureImg))
+	# print kpsFeatureImg
+	boundingBox = []
+	boundingBoxAttr = []
+	# 滑动窗口
+	for windowYPosList in windowRange:
+		# 子窗口中最好的匹配结果
+		p1 = None
+		p2 = None
+		kpPairs = []
+		windowYPos = -1
+		windowImg = None
+		# 指向匹配上的特征序号
+		featureIndex = 0
+		# 滑动子窗口
+		# 选择最好的子窗口匹配结果
+		for windowYPosItem in windowYPosList:
+			windowImgItem = imgDest[windowYPosItem: windowYPosItem + windowHeight, 0: imgDestW];
+			# cv2.imshow("img" + str(windowYPosItem), windowImgItem)
+			# 提取目标特征
+			(kpsDestImg, descsDestImg) = method.detectAndCompute(windowImgItem, None)
+			# 选取最好的匹配结果
+			if kpsDestImg != [] and descsDestImg is not None:
+				p1Item, p2Item, kpPairsItem = (None, None, None)
+				maxRate = 0
+				localFeatureIndex = 0
+				print "---------------"
+				for kpsFeatureImg, descsFeatureImg in featuresList:
+					# 特征匹配
+					matches = bf.knnMatch(descsFeatureImg, descsDestImg, k = 2)
+					# 过滤匹配结果
+					localP1Item, localP2Item, localKPPairsItem = filter_matches(kpsFeatureImg, kpsDestImg, matches, ratio = 0.75)
+					localRate = len(localKPPairsItem) / float(len(kpsFeatureImg))
+					if localRate > maxRate:
+						print localRate, maxRate, localFeatureIndex, len(localKPPairsItem)
+						maxRate = localRate
+						p1Item, p2Item, kpPairsItem = (localP1Item, localP2Item, localKPPairsItem)
+						featureIndex = localFeatureIndex
+					localFeatureIndex += 1
+				# 至少匹配到10个特征点
+				if kpPairsItem and len(kpPairsItem) >= 10:
+					# 选择最好的子窗口匹配结果
+					if len(kpPairsItem) > len(kpPairs):
+						p1 = p1Item
+						p2 = p2Item
+						kpPairs = kpPairsItem
+						windowYPos = windowYPosItem
+						windowImg = windowImgItem
+		if p1 is not None and p2 is not None and kpPairs != [] and windowYPos != -1:
+			# 求出映射矩阵
+			M, mask = cv2.findHomography(p1, p2, cv2.RANSAC, 5.0)
+			if M is not None:
+				# 执行映射
+				dst = cv2.perspectiveTransform(featurePtsList[featureIndex], M)
+				dst = dst[:, 0]
+				dst[:,1] += windowYPos
+				boundingBox.append(dst)
+				boundingBoxAttr.append(len(kpPairs))
+			# if showImg:
+			# 	explore_match('matches' + str(windowYPos), imgFeatureGrays[featureIndex], cv2.cvtColor(windowImg, cv2.COLOR_BGR2GRAY), kpPairs) 
+	# 面积过滤
+	#boundingBox = areaFilter(boundingBox)
+	# 极大值抑制，消除重叠包围框
+	#boundingBox = NMS(boundingBox, boundingBoxAttr)
 	if showImg:
 		imgBoundingBox = cv2.polylines(imgDest.copy(), np.int32(boundingBox), True, (0, 255, 0), 3, cv2.LINE_AA)
 		cv2.imshow("img", imgBoundingBox)
