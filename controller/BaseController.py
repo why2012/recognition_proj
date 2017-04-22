@@ -40,6 +40,7 @@ class BaseController(web.RequestHandler):
 			self.loggerError.error(self.oneLine(str(self.getAllArgs()) + "; " + str(e) + "\n" + traceback.format_exc()))
 		finally:
 			if self.result is not None:
+				self.set_header('Content-Type', 'text/json')
 				self.jsonWrite(self.result)
 
 	def execute(self):

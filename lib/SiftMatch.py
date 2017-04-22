@@ -161,7 +161,7 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 # imgFeature02Resize = cv2.resize(imgFeature02, (860, 32))
 # imgFeature03Resize = cv2.resize(imgFeature03, (860, 32))
 # imgFeatureMix = np.uint8(imgFeature * 0.3 + imgFeature02Resize * 0.6 + imgFeature03Resize * 0.1)
-def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = True):
+def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = True, octaveLayers = 7):
 	# imgFeature = cv2.pyrDown(imgFeature)
 	# 下采样
 	imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
@@ -187,7 +187,7 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 			windowRangeExtend.append([windowYPos, extendH])
 	windowRange = windowRangeExtend
 	windowRange = np.int32(windowRange)
-	sift = cv2.xfeatures2d.SIFT_create(nOctaveLayers = 10)
+	sift = cv2.xfeatures2d.SIFT_create(nOctaveLayers = octaveLayers)
 	# surf = cv2.xfeatures2d.SURF_create();
 	method = sift
 	bf = cv2.BFMatcher(cv2.NORM_L2)
