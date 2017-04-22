@@ -102,6 +102,7 @@ def areaFilter(boundingBox):
 	y1Sec = boundingBox[:, 2, 0]
 	y2Sec = boundingBox[:, 3, 0]
 
+	# 过滤异常形状且面积很大的boundingBox
 	avgArea01 = np.sum(np.abs((x1 - x2) * (y1 - y2))) / len(boundingBox)
 	avgArea02 = np.sum(np.abs((x1Sec - x2Sec) * (y1Sec - y2Sec))) / len(boundingBox)
 	avgArea = np.minimum(avgArea01, avgArea02)
@@ -186,7 +187,7 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 			windowRangeExtend.append([windowYPos, extendH])
 	windowRange = windowRangeExtend
 	windowRange = np.int32(windowRange)
-	sift = cv2.xfeatures2d.SIFT_create(nOctaveLayers = 5)
+	sift = cv2.xfeatures2d.SIFT_create(nOctaveLayers = 10)
 	# surf = cv2.xfeatures2d.SURF_create();
 	method = sift
 	bf = cv2.BFMatcher(cv2.NORM_L2)
