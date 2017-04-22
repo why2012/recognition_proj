@@ -2,6 +2,7 @@
 from lib.ScantronAnalyzeCV import *
 import numpy as np
 import conf.Config as conf
+from ScantronRecogController import *
 
 class ScoreMarkingController(ScantronRecogController):
 	def execute(self):

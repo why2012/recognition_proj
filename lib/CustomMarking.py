@@ -97,7 +97,7 @@ def lineMarking(img, drawImg = False):
 	img = cv2.Canny(img, 25, 50, apertureSize = 3)
 	# img = erosion(img, getKernel((3, 3)))
 	# img = dilation(img, getKernel((3, 3)))
-	lines = cv2.HoughLines(img, 1, np.pi / 360, 50)
+	lines = cv2.HoughLines(img, 1, np.pi / 360, 90)
 	lines = np.array(lines)
 	if not lines.any():
 		return []
@@ -111,7 +111,7 @@ def lineMarking(img, drawImg = False):
 	linesTrain = lines - (min(lines[:, 0]), min(lines[:, 1]))
 	linesTrain[:, 1] = linesTrain[:, 1] * 100
 	# 根据倾角聚类
-	db = DBSCAN(eps = 10).fit(linesTrain)
+	db = DBSCAN(eps = 20).fit(linesTrain)
 	labelSet = set(db.labels_)
 	newLines = []
 	# 得到n类数据，每一类取平均值
@@ -145,7 +145,32 @@ def lineMarking(img, drawImg = False):
 		cv2.imshow("img01", img)
 		cv2.imshow("img02", wimg)
 		cv2.waitKey(10)
+		# cv2.imwrite("./resources/tmp2.png", img)
+		# cv2.imwrite("./resources/tmp.png", wimg)
 	return centroid
+
+# 中心点转成填涂结果, 横向
+def centroidMarkingX(centroid, col, W):
+	localCentroid = np.copy(centroid).tolist()
+	iterStep = W / col
+	iterRange = range(0, W, iterStep)
+	iterCount = 0
+	resultArray = []
+	for startX in iterRange:
+		localPoint = []
+		for point in localCentroid:
+			x, y = point
+			if x >= startX and x <= startX + iterStep:
+				localPoint.append(point)
+		for p in localPoint:
+			localCentroid.remove(p)
+		if len(localPoint) == 1:
+			resultArray.append(1)
+		else:
+			resultArray.append(0)
+	return resultArray
+
+
 
 
 

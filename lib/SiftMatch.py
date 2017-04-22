@@ -96,12 +96,23 @@ def areaFilter(boundingBox):
 	x2 = boundingBox[:, 1, 0]
 	y1 = boundingBox[:, 0, 1]
 	y2 = boundingBox[:, 3, 1]
-	avgArea = np.sum(np.abs((x1 - x2) * (y1 - y2))) / len(boundingBox)
+
+	x1Sec = boundingBox[:, 2, 1]
+	x2Sec = boundingBox[:, 1, 1]
+	y1Sec = boundingBox[:, 2, 0]
+	y2Sec = boundingBox[:, 3, 0]
+
+	avgArea01 = np.sum(np.abs((x1 - x2) * (y1 - y2))) / len(boundingBox)
+	avgArea02 = np.sum(np.abs((x1Sec - x2Sec) * (y1Sec - y2Sec))) / len(boundingBox)
+	avgArea = np.minimum(avgArea01, avgArea02)
 	for boundingBoxItem in boundingBox:
-		p1, p2, p3, p4 = boundingBoxItem
-		boxArea = np.abs((p1[0] - p2[0]) * (p1[1] - p4[1]))
-		if boxArea > avgArea * 0.4:
-			newBoundingBox.append(boundingBoxItem)
+		if (boundingBoxItem >= 0).all():
+			p1, p2, p3, p4 = boundingBoxItem
+			boxArea01 = np.abs((p1[0] - p2[0]) * (p1[1] - p4[1]))
+			boxArea02 = np.abs((p3[1] - p2[1]) * (p3[0] - p4[0]))
+			boxArea = np.minimum(boxArea01, boxArea02)
+			if boxArea > avgArea * 0.4:
+				newBoundingBox.append(boundingBoxItem)
 	return newBoundingBox
 
 # imgFeature = cv2.imread("pics/IMG_1203.JPG")
@@ -129,7 +140,7 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 	print "MatchResult: ", len(kpPairs)
 	if kpPairs:
 		if drawBoundingBox:
-			M, mask = cv2.findHomography(p1, p2, cv2.RANSAC, 5.0)
+			M, mask = cv2.findHomography(p1, p2, cv2.RANSAC)
 			imgFeatureH, imgFeatureW = imgFeatureGray.shape
 			pts = np.float32([[0, 0], [imgFeatureW - 1, 0], [imgFeatureW - 1, imgFeatureH - 1], [0, imgFeatureH - 1]])
 			pts = pts.reshape(-1, 1, 2);
@@ -224,8 +235,8 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 				dst[:,1] += windowYPos
 				boundingBox.append(dst)
 				boundingBoxAttr.append(len(kpPairs))
-			# if showImg:
-			# 	explore_match('matches' + str(windowYPos), imgFeatureGray, cv2.cvtColor(windowImg, cv2.COLOR_BGR2GRAY), kpPairs) 
+			if showImg:
+				explore_match('matches' + str(windowYPos), imgFeatureGray, cv2.cvtColor(windowImg, cv2.COLOR_BGR2GRAY), kpPairs) 
 	# 面积过滤
 	boundingBox = areaFilter(boundingBox)
 	# 极大值抑制，消除重叠包围框
