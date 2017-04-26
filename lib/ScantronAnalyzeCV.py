@@ -509,19 +509,20 @@ def readCard(img, details = [], mode = "noise"):
 	rectImg01[:, col - 1] = 255
 	rectImg01[:, 0] = 255
 	# 调试:寻找并在白色底图上画出轮廓
-	# whiteImg = createWhiteImg(rectImg01.shape)
+	# whiteImg = createWhiteImg((col, row))
 	# 找出轮廓
 	contours, hierarchy = findContours(rectImg01, cv2.RETR_TREE)
 	# 调试:画出轮廓
 	# drawContours(whiteImg, contours, (0, 0, 0), 2)
 	# 得到填涂答案
 	boundingBox = getBoundingRect(contours)
+	# print boundingBox
 	ansBoxCenter, topBoundingBox = findAnswerBoxCenter(boundingBox, hierarchy)
 	# 单个题组
 	# ansMap = determineAnswer(ansBoxCenter, 5, 4, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1])
 	# 四个题组
 	ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
-		, restrictArea = True, restrictAreaThresh = 0.02)
+		, restrictArea = True, restrictAreaThresh = 0.03)
 	# 调试:画出轮廓
 	# showImg(rectImg01, whiteImg)	
 	return ansMap
