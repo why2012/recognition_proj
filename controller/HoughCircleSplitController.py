@@ -15,8 +15,17 @@ class HoughCircleSplitController(BaseController):
 			res = url.urlopen(self.paperUrl)
 			rawData = res.read()
 		img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)# IMREAD_COLOR
-		imgList = circleSplit(img, self.paperW, self.paperH)
-		if len(imgList) > 0:
+		# 二维码识别
+		
+		# 二维码
+		QRCodeData = {"paperW": 1200, "paperH": 2000}
+		if self.paperW == -1:
+			self.paperW = QRCodeData["paperW"]
+		if self.paperH == -1:
+			self.paperH = QRCodeData["paperH"]
+		(circles, imgList) = circleSplit(img, self.paperW, self.paperH, showImg = False)
+		cv2.imwrite("resources/tmp.png", imgList[0])
+		if len(imgList) > 0 and self.opType == 0:
 			retval, buf = cv2.imencode(".jpg", imgList[0])
 			if retval:
 				if int(self.version[2]) >= 10:
@@ -28,6 +37,11 @@ class HoughCircleSplitController(BaseController):
 				self.flush()
 			else:
 				self.setResult([], STATUS_ENCODE_ERROR)
+		elif self.opType == 1:
+			for i, item in enumerate(circles):
+				if item is not None:
+					circles[i] = item.tolist()
+			self.setResult({"coords": circles, "qr": QRCodeData}, STATUS_OK)
 		else:
 			self.setResult([], STATUS_SCAN_ERROR)
 
@@ -35,10 +49,16 @@ class HoughCircleSplitController(BaseController):
 	def checkParams(self):
 		paperW = self.getIntArg("paperW")
 		paperH = self.getIntArg("paperH")
-		if paperW <= 0:
-			raise ErrorStatusException("paperW must be a positive number", STATUS_PARAM_ERROR)
-		if paperH <= 0:
-			raise ErrorStatusException("paperH must be a positive number", STATUS_PARAM_ERROR)
+		opType = self.getIntArg("opType")
+		if opType < 0:
+			opType = 0 # 返回图片
+		if opType != 0 and opType !=1:
+			raise ErrorStatusException("opType must be a positive number(0: 返回图片, 1: 返回坐标点和二维码)", STATUS_PARAM_ERROR)
+		self.opType = opType
+		# if paperW <= 0:
+		# 	raise ErrorStatusException("paperW must be a positive number", STATUS_PARAM_ERROR)
+		# if paperH <= 0:
+		# 	raise ErrorStatusException("paperH must be a positive number", STATUS_PARAM_ERROR)
 		if not self.fileExist("paper"):
 			self.paperUrl = self.getStrArg("paper")
 		else:

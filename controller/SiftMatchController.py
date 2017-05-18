@@ -16,8 +16,15 @@ class SiftMatchController(BaseController):
 			rawData = url.urlopen(self.imgDestUrl).read()
 		imgDest = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)# IMREAD_COLOR
 		imgFeature = cv2.imread("resources/" + self.imgFeature)
-		boundingBox = siftMatchVertical(imgFeature, imgDest)
-		self.setResult(boundingBox.tolist(), STATUS_OK)
+		H, W, _ = imgDest.shape
+		# boundingBox = siftMatchVertical(imgFeature, imgDest)
+		boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.08, method = "SIFT", resizeScale = 1, showImg = False)
+		if boundingBox is not None and len(boundingBox) != 0:
+			boundingBox[:, :, 0] = boundingBox[:, :, 0] / float(W)
+			boundingBox[:, :, 1] = boundingBox[:, :, 1] / float(H)
+			self.setResult(boundingBox.tolist(), STATUS_OK)
+		else:
+			self.setResult([], STATUS_SCAN_ERROR)
 
 	@staticmethod
 	def checkParams(self):

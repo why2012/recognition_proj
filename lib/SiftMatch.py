@@ -161,8 +161,11 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 # imgFeature02Resize = cv2.resize(imgFeature02, (860, 32))
 # imgFeature03Resize = cv2.resize(imgFeature03, (860, 32))
 # imgFeatureMix = np.uint8(imgFeature * 0.3 + imgFeature02Resize * 0.6 + imgFeature03Resize * 0.1)
-def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = True, octaveLayers = 7):
+# 放大后的图像不清晰，破坏了特征
+# resizeScale = 2.0,暂定
+def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = True, octaveLayers = 8, resizeScale = 1.0, method = "SIFT"):
 	# imgFeature = cv2.pyrDown(imgFeature)
+	resizeScale = int(resizeScale)
 	# 下采样
 	imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
 	if pyrDown:
@@ -187,9 +190,11 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 			windowRangeExtend.append([windowYPos, extendH])
 	windowRange = windowRangeExtend
 	windowRange = np.int32(windowRange)
-	sift = cv2.xfeatures2d.SIFT_create(nOctaveLayers = octaveLayers)
-	# surf = cv2.xfeatures2d.SURF_create();
-	method = sift
+	if method != "SURF":
+		method = cv2.xfeatures2d.SIFT_create(nOctaveLayers = octaveLayers, contrastThreshold = 0.01, edgeThreshold = 10, sigma = 1.6)
+	else:
+		# 配合resizeScale = 5用
+		method = cv2.xfeatures2d.SURF_create(nOctaveLayers = octaveLayers);
 	bf = cv2.BFMatcher(cv2.NORM_L2)
 	# 提取模板特征
 	(kpsFeatureImg, descsFeatureImg) = method.detectAndCompute(imgFeature, None)
@@ -208,6 +213,9 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 		# 选择最好的子窗口匹配结果
 		for windowYPosItem in windowYPosList:
 			windowImgItem = imgDest[windowYPosItem: windowYPosItem + windowHeight, 0: imgDestW];
+			windowH, windowW, _ = windowImgItem.shape
+			if resizeScale != 1:
+				windowImgItem = cv2.resize(windowImgItem, (windowW * resizeScale, windowH * resizeScale))
 			# cv2.imshow("img" + str(windowYPosItem), windowImgItem)
 			# 提取目标特征
 			(kpsDestImg, descsDestImg) = method.detectAndCompute(windowImgItem, None)
@@ -232,7 +240,11 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 			if M is not None:
 				# 执行映射
 				dst = cv2.perspectiveTransform(featurePts, M)
-				dst = dst[:, 0]
+				# 缩放boundingBox
+				if resizeScale != 1:
+					dst = np.array(dst[:, 0]) / float(resizeScale)
+				else:
+					dst = dst[:, 0]
 				dst[:,1] += windowYPos
 				boundingBox.append(dst)
 				boundingBoxAttr.append(len(kpPairs))
