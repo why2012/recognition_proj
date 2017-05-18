@@ -50,13 +50,14 @@ def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.4):
 	radiusVar = np.sum(np.power(radiusArr - np.array([np.average(radiusArr)] * 4), 2))
 
 	# 宽高比与对角线长度
-	# print whRatioBool, diagLengthRatioBool, staRatio
-	# print topLeft.tolist()
-	# print topRight.tolist()
-	# print bottomRight.tolist()
-	# print bottomLeft.tolist()
-	# print ratio1, ratio2, ratio3, ratio4
-	# print "--------------"
+	# if diagLengthRatioBool:
+	# 	print whRatioBool, diagLengthRatioBool, staRatio
+	# 	print topLeft.tolist()
+	# 	print topRight.tolist()
+	# 	print bottomRight.tolist()
+	# 	print bottomLeft.tolist()
+	# 	print ratio1, ratio2, ratio3, ratio4
+	# 	print "--------------"
 	if whRatioBool and diagLengthRatioBool:
 		# 差异度
 		difference = np.abs(diagLengthRatio - thresh) + radiusVar

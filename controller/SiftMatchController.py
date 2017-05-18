@@ -18,7 +18,7 @@ class SiftMatchController(BaseController):
 		imgFeature = cv2.imread("resources/" + self.imgFeature)
 		H, W, _ = imgDest.shape
 		# boundingBox = siftMatchVertical(imgFeature, imgDest)
-		boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.08, method = "SIFT", resizeScale = 1, showImg = False)
+		boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.1, method = "SURF", resizeScale = 2, showImg = False)
 		if boundingBox is not None and len(boundingBox) != 0:
 			boundingBox[:, :, 0] = boundingBox[:, :, 0] / float(W)
 			boundingBox[:, :, 1] = boundingBox[:, :, 1] / float(H)

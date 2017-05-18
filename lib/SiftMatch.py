@@ -163,7 +163,7 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 # imgFeatureMix = np.uint8(imgFeature * 0.3 + imgFeature02Resize * 0.6 + imgFeature03Resize * 0.1)
 # 放大后的图像不清晰，破坏了特征
 # resizeScale = 2.0,暂定
-def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = True, octaveLayers = 8, resizeScale = 1.0, method = "SIFT"):
+def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = False, octaveLayers = 8, resizeScale = 1.0, method = "SIFT"):
 	# imgFeature = cv2.pyrDown(imgFeature)
 	resizeScale = int(resizeScale)
 	# 下采样
@@ -186,8 +186,7 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 	# 生成子窗口
 	for windowYPos in windowRange:
 		extendH = windowYPos + windowHeight / 2.0
-		if extendH <= imgDestH - windowHeight:
-			windowRangeExtend.append([windowYPos, extendH])
+		windowRangeExtend.append([windowYPos, extendH])
 	windowRange = windowRangeExtend
 	windowRange = np.int32(windowRange)
 	if method != "SURF":
@@ -214,9 +213,12 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 		for windowYPosItem in windowYPosList:
 			windowImgItem = imgDest[windowYPosItem: windowYPosItem + windowHeight, 0: imgDestW];
 			windowH, windowW, _ = windowImgItem.shape
+			if windowH == 0 or windowW == 0:
+				continue
 			if resizeScale != 1:
 				windowImgItem = cv2.resize(windowImgItem, (windowW * resizeScale, windowH * resizeScale))
-			# cv2.imshow("img" + str(windowYPosItem), windowImgItem)
+			if showImg:
+				pass#cv2.imshow("img" + str(windowYPosItem), windowImgItem)
 			# 提取目标特征
 			(kpsDestImg, descsDestImg) = method.detectAndCompute(windowImgItem, None)
 			# 选取最好的匹配结果
@@ -254,12 +256,13 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 	boundingBox = areaFilter(boundingBox)
 	# 极大值抑制，消除重叠包围框
 	boundingBox = NMS(boundingBox, boundingBoxAttr)
+	boundingBox = np.array(boundingBox)
 	if showImg:
 		imgBoundingBox = cv2.polylines(imgDest.copy(), np.int32(boundingBox), True, (0, 255, 0), 1, cv2.LINE_AA)
 		cv2.imshow("img", imgBoundingBox)
 		cv2.waitKey(10)
 	if pyrDown:
-		boundingBox = np.array(boundingBox) * 2
+		boundingBox = boundingBox * 2
 	return boundingBox
 
 # 按匹配的特征点数量选择模板，在匹配短区域时短模板吃亏，按特征点占比选择，在匹配长区域时长模板吃亏
