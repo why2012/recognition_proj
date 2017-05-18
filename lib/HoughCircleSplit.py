@@ -127,9 +127,10 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 0.5, showImg = False)
 	# cv2.imwrite("resources/test.jpg", img)
 	# 切割结果
 	splitArea = np.array([])
-	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, minWH * 0.08, param1 = 60, param2 = 20, minRadius = int(np.ceil(3 * scaleThresh)), maxRadius = int(50 * scaleThresh))
+	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, minWH * 0.08, param1 = 100, param2 = 10, minRadius = int(np.ceil(2 * scaleThresh)), maxRadius = int(50 * scaleThresh))
 	# 只取半径大于平均值的圆
 	avgRadius = np.average(circles[0, :, 2]) * 0.8
+	# avgRadius = 0
 	circles = np.array([circles[0, circles[0, :, 2] >= avgRadius]])
 	# 确定四个边角圆
 	corners, correctCircles, _ = determingCorrectCircles(circles[0], float(paperW) / paperH)

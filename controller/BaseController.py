@@ -85,14 +85,14 @@ class BaseController(web.RequestHandler):
 		arg = self.getArg(key, default)
 		if not arg or arg is None:
 			return default
-		return int(arg)
+		return int(float(arg))
 
 	def getIntArgs(self, key, default = [], sep = ","):
 		arg = self.getArg(key, default)
 		if not arg or arg is None:
 			return default
 		args = arg.split(sep)
-		return [int(i) for i in args]
+		return [int(float(i)) for i in args]
 
 	def getFloatArg(self, key, default = -1):
 		arg = self.getArg(key, default)
