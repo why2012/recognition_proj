@@ -106,6 +106,34 @@ def areaFilter(boundingBox):
 	avgArea01 = np.sum(np.abs((x1 - x2) * (y1 - y2))) / len(boundingBox)
 	avgArea02 = np.sum(np.abs((x1Sec - x2Sec) * (y1Sec - y2Sec))) / len(boundingBox)
 	avgArea = np.minimum(avgArea01, avgArea02)
+
+	# 计算0-1， 0-3 点之间的距离，计算面积，根据面积和两边长度过滤噪声, len1为长边，len2为短边
+	# len1Thresh = 20
+	# len2Thresh = 10
+	# x1 = boundingBox[:, 0, 0]
+	# y1 = boundingBox[:, 0, 1]
+	# x2 = boundingBox[:, 1, 0]
+	# y2 = boundingBox[:, 1, 1]
+	# x3 = boundingBox[:, 3, 0]
+	# y3 = boundingBox[:, 3, 1]
+	# len1 = np.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
+	# len2 = np.sqrt((x1 - x3) * (x1 - x3) + (y1 - y3) * (y1 - y3))
+	# # 过滤小值
+	# len1 = len1[len1 > len1Thresh]
+	# len2 = len2[len2 > len2Thresh]
+	# avgLen1 = np.average(len1)
+	# avgLen2 = np.average(len2)
+	# # 过滤大值
+	# len1 = len1[len1 < avgLen1 * 2]
+	# len2 = len2[len2 < avgLen2 * 2]
+	# # 数量对齐
+	# totalLen = min(len(len1), len(len2))
+	# len1 = len1[:totalLen]
+	# len2 = len2[:totalLen]
+
+	# avgLen1 = np.average(len1)
+	# avgLen2 = np.average(len2)
+	# avgArea = np.average(len1 * len2)
 	for boundingBoxItem in boundingBox:
 		if (boundingBoxItem >= 0).all():
 			p1, p2, p3, p4 = boundingBoxItem
@@ -114,6 +142,15 @@ def areaFilter(boundingBox):
 			boxArea = np.minimum(boxArea01, boxArea02)
 			if boxArea > avgArea * 0.4:
 				newBoundingBox.append(boundingBoxItem)
+
+			# locallen1 = np.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]))
+			# locallen2 = np.sqrt((p1[0] - p4[0]) * (p1[0] - p4[0]) + (p1[1] - p4[1]) * (p1[1] - p4[1]))
+			# boxArea = locallen1 * locallen2
+			# print "------", boxArea > avgArea * 0.3, boxArea, locallen1, locallen2, avgArea * 0.4, avgArea, avgLen1, avgLen2
+			# if boxArea > avgArea * 0.3 and \
+			# (locallen1 >= avgLen1 * 0.5 and locallen1 <= avgLen1 * 1.5) and \
+			# (locallen2 >= avgLen2 * 0.5 and locallen2 <= avgLen2 * 1.5):
+			# 	newBoundingBox.append(boundingBoxItem)
 	return newBoundingBox
 
 # imgFeature = cv2.imread("pics/IMG_1203.JPG")
@@ -226,7 +263,7 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 				# 特征匹配
 				matches = bf.knnMatch(descsFeatureImg, descsDestImg, k = 2)
 				# 过滤匹配结果
-				p1Item, p2Item, kpPairsItem = filter_matches(kpsFeatureImg, kpsDestImg, matches, ratio = 0.75)
+				p1Item, p2Item, kpPairsItem = filter_matches(kpsFeatureImg, kpsDestImg, matches, ratio = 0.70)
 				# 至少匹配到10个特征点
 				if kpPairsItem and len(kpPairsItem) >= 10:
 					# 选择最好的子窗口匹配结果

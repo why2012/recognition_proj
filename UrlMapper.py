@@ -9,6 +9,7 @@ from controller.SiftMatchController import SiftMatchController
 from controller.CustomMarkingController import CustomMarkingController
 from controller.QuestionAreaMatchController import QuestionAreaMatchController
 from controller.MultiTypeScoreMarkController import MultiTypeScoreMarkController
+from controller.AreaExceptionDetectController import AreaExceptionDetectController
 
 class UrlMapper(object):
 
@@ -23,7 +24,8 @@ class UrlMapper(object):
 			(r"/paperMatch", SiftMatchController),
 			(r"/lineMarking", CustomMarkingController),
 			(r"/questionAreaMatch", QuestionAreaMatchController),
-			(r"/multiTypeMark", MultiTypeScoreMarkController)
+			(r"/multiTypeMark", MultiTypeScoreMarkController),
+			(r"/areaExceptionDetect", AreaExceptionDetectController)
 		]	
 
 	def getMapper(self):

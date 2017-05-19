@@ -119,7 +119,7 @@ totalScore // 总分
 
 参数
 ```
-imgFeatures // 特征模板,逗号分隔  choice7.png,judge2.png,scorebar.png
+imgFeatures // 特征模板,逗号分隔  choice7.png,judge2.png,scorebar-lowres03.png
 imgDest // 待识别图像
 ```
 
@@ -241,6 +241,31 @@ paper 图片或图片绝对url
         15.572412490844727
       ]
     ]
+  }
+}
+```
+
+### 目标区域宽高比判定
+地址: /areaExceptionDetect
+
+方法: post
+
+参数
+```
+imgFeature // 特征模板,逗号分隔
+imgDest // 待识别图像
+whRatio // 宽高比
+```
+
+返回
+```
+
+{
+  "status": 0,
+  "msg": "",
+  "ans": {
+    whRatio: 2,// 检测到了宽高比
+    exception: 1 //是否与正确比例一致, 1 一致, 0 不一致
   }
 }
 ```
