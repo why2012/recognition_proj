@@ -251,7 +251,7 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 				boundingBox.append(dst)
 				boundingBoxAttr.append(len(kpPairs))
 			if showImg:
-				explore_match('matches' + str(windowYPos), imgFeatureGray, cv2.cvtColor(windowImg, cv2.COLOR_BGR2GRAY), kpPairs) 
+				pass#explore_match('matches' + str(windowYPos), imgFeatureGray, cv2.cvtColor(windowImg, cv2.COLOR_BGR2GRAY), kpPairs) 
 	# 面积过滤
 	boundingBox = areaFilter(boundingBox)
 	# 极大值抑制，消除重叠包围框

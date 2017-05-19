@@ -29,7 +29,7 @@ class SiftMatchController(BaseController):
 	@staticmethod
 	def checkParams(self):
 		imgFeature = self.getStrArg("imgFeature").strip()
-		if imgFeature == "" and os.path.exists("resources/" + imgFeature):
+		if imgFeature == "" or not os.path.exists("resources/" + imgFeature):
 			raise ErrorStatusException("imgFeature must be a valid resource name", STATUS_PARAM_ERROR)
 		if not self.fileExist("imgDest"):
 			self.imgDestUrl = self.getStrArg("imgDest")
