@@ -23,7 +23,7 @@ class HoughCircleSplitController(BaseController):
 			self.paperW = QRCodeData["paperW"]
 		if self.paperH == -1:
 			self.paperH = QRCodeData["paperH"]
-		(circles, imgList) = circleSplit(img, self.paperW, self.paperH, scaleThresh = 0.5, showImg = False)
+		(circles, imgList) = circleSplit(img, self.paperW, self.paperH, scaleThresh = 1.0, showImg = False)
 		if len(imgList) > 0 and self.opType == 0:
 			# cv2.imwrite("resources/tmp.png", imgList[0])
 			retval, buf = cv2.imencode(".jpg", imgList[0])

@@ -109,15 +109,16 @@ def determingCorrectCircles(circles, whRatio):
 
 # main function, paperW,paperH: 目标区域宽高(相对比例)
 # return split image
-def circleSplit(originalImg, paperW, paperH, scaleThresh = 0.5, showImg = False):
+def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False):
 	imgSize = getImgSize(originalImg)
 	w, h = imgSize
 	# 按比例缩放
 	w, h = (np.int(w * scaleThresh), np.int(h * scaleThresh))
 	# 目标区域宽高
-	dw, dh = (int(paperW * scaleThresh * 2), int(paperH * scaleThresh * 2))
+	dw, dh = (int(paperW * scaleThresh), int(paperH * scaleThresh))
 	minWH = np.min((w, h))
-	originalImg = cv2.resize(originalImg, (w, h))
+	if scaleThresh != 1.0:
+		originalImg = cv2.resize(originalImg, (w, h))
 	if showImg:
 		# 调试， 画圆
 		imgColor = originalImg.copy()
