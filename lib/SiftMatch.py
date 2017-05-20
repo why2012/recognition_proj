@@ -222,8 +222,9 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 	windowRangeExtend = []
 	# 生成子窗口
 	for windowYPos in windowRange:
-		extendH = windowYPos + windowHeight / 2.0
-		windowRangeExtend.append([windowYPos, extendH])
+		extendH01 = windowYPos + windowHeight / 2.0
+		# extendH02 = windowYPos + windowHeight / 1.8
+		windowRangeExtend.append([windowYPos, extendH01])
 	windowRange = windowRangeExtend
 	windowRange = np.int32(windowRange)
 	if method != "SURF":

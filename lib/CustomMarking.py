@@ -97,7 +97,7 @@ def lineMarking(img, drawImg = False):
 	img = cv2.Canny(img, 25, 50, apertureSize = 3)
 	# img = erosion(img, getKernel((3, 3)))
 	# img = dilation(img, getKernel((3, 3)))
-	lines = cv2.HoughLines(img, 1, np.pi / 360, 90)
+	lines = cv2.HoughLines(img, 1, np.pi / 360, 60)
 	lines = np.array(lines)
 	if not lines.any():
 		return []
@@ -111,7 +111,7 @@ def lineMarking(img, drawImg = False):
 	linesTrain = lines - (min(lines[:, 0]), min(lines[:, 1]))
 	linesTrain[:, 1] = linesTrain[:, 1] * 100
 	# 根据倾角聚类
-	db = DBSCAN(eps = 20).fit(linesTrain)
+	db = DBSCAN(eps = 30, min_samples = 1).fit(linesTrain)
 	labelSet = set(db.labels_)
 	newLines = []
 	# 得到n类数据，每一类取平均值

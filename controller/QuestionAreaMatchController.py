@@ -30,7 +30,8 @@ class QuestionAreaMatchController(BaseController):
 			else:
 				octaveLayers = 7
 			# boundingBox = siftMatchVertical(imgFeature, imgDest, showImg = False, windowHeightRate = 0.04, octaveLayers = octaveLayers)
-			boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.02, method = "SURF", resizeScale = 2.0, showImg = False)
+			# windowHeightRate = 0.06
+			boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.02, method = "SIFT", resizeScale = 1.0, showImg = True)
 			if boundingBox != []:
 				boundingBox[:, :, 0] = boundingBox[:, :, 0] / float(W)
 				boundingBox[:, :, 1] = boundingBox[:, :, 1] / float(H)

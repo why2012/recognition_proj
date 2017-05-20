@@ -4,6 +4,7 @@ from conf.Config import *
 from lib.ScantronAnalyzeCV import *
 from lib.CustomMarking import *
 from lib.SiftMatch import *
+from lib.PreProcessing import *
 from BaseController import *
 
 # quesType: [1, 2, 3, 4], 选择, 判断, 主观, 多选
@@ -18,33 +19,46 @@ class MultiTypeScoreMarkController(BaseController):
 			res = url.urlopen(self.imgUrl)
 			img = res.read()
 		img = cv2.imdecode(np.fromstring(img, np.uint8), cv2.IMREAD_COLOR)# IMREAD_GRAYSCALE
+		# if self.quesType != SUBJECT: 
+		# 	details = {}
+		# 	details["area"] = None
+		# 	if self.quesType == JUDGE:
+		# 		details["questionCount"] = self.col
+		# 	else:
+		# 		details["questionCount"] = self.MAX_CHOICE_NUM
+		# 	details["answerCount"] = self.row
+		# 	details["groupCount"] = 1
+		# 	resultMat = readCard(img, details).T
+		# 	resultArray = resultMat[0]
+		# else:
+		# 	# 主观题需要裁剪出打分条
+		# 	# imgFeature = cv2.imread("resources/scoreBar.png")
+		# 	# boundingBox = siftMatchVertical(imgFeature, img)
+		# 	# if len(boundingBox) == 0:
+		# 	# 	raise ErrorStatusException("failed to extract score bar", STATUS_SCAN_ERROR)
+		# 	# boundingBox = boundingBox[0]
+		# 	# img = img[boundingBox[0][1]:boundingBox[3][1], boundingBox[0][0]:boundingBox[1][0]]
+		# 	H, W, _ = img.shape
+		# 	# 相对于宽度的高度
+		# 	img = img[: int(self.SCORE_BAR_RATIO * W)]
+		# 	# 划线
+		# 	H, W, _ = img.shape
+		# 	img = cv2.resize(img, (W * 7, H * 7))
+		# 	centroid = lineMarking(img)
+		# 	resultArray = centroidMarkingX(centroid, self.col, W * 7)
+		
+		# 所有题型都使用划线
+		# 过滤出黑色区域
+		img = filterBlack(img)
+		H, W, _ = img.shape
 		if self.quesType != SUBJECT: 
-			details = {}
-			details["area"] = None
-			if self.quesType == JUDGE:
-				details["questionCount"] = self.col
-			else:
-				details["questionCount"] = self.MAX_CHOICE_NUM
-			details["answerCount"] = self.row
-			details["groupCount"] = 1
-			resultMat = readCard(img, details).T
-			resultArray = resultMat[0]
-		else:
-			# 主观题需要裁剪出打分条
-			# imgFeature = cv2.imread("resources/scoreBar.png")
-			# boundingBox = siftMatchVertical(imgFeature, img)
-			# if len(boundingBox) == 0:
-			# 	raise ErrorStatusException("failed to extract score bar", STATUS_SCAN_ERROR)
-			# boundingBox = boundingBox[0]
-			# img = img[boundingBox[0][1]:boundingBox[3][1], boundingBox[0][0]:boundingBox[1][0]]
-			H, W, _ = img.shape
 			# 相对于宽度的高度
 			img = img[: int(self.SCORE_BAR_RATIO * W)]
-			# 划线
-			H, W, _ = img.shape
-			img = cv2.resize(img, (W * 7, H * 7))
-			centroid = lineMarking(img)
-			resultArray = centroidMarkingX(centroid, self.col, W * 7)
+		# 划线
+		H, W, _ = img.shape
+		img = cv2.resize(img, (W * 7, H * 7))
+		centroid = lineMarking(img)
+		resultArray = centroidMarkingX(centroid, self.col, W * 7)
 		self.setResult(self.markingScore(resultArray), STATUS_OK)
 
 	def markingScore(self, resultArray):
@@ -82,9 +96,17 @@ class MultiTypeScoreMarkController(BaseController):
 			elif len(scoreArray) == 2:
 				scoreIndex = scoreArray[0]
 				plusScoreIndex = scoreArray[1]
+				# 异常判定
+				# 包含满分区域
+				if scoreIndex == SCORE_BAR_AREA0_INDEX or plusScoreIndex == SCORE_BAR_AREA0_INDEX:
+					return -1
+				# 同时选中多个个位数区域
+				elif (scoreIndex in SCORE_BAR_AREA1 and plusScoreIndex in SCORE_BAR_AREA1):
+					return -1
 				return SCORE_BAR[scoreIndex] + SCORE_BAR[plusScoreIndex]
 			else:
-				return 0
+				# 异常情况
+				return -1
 		elif self.quesType == MULTI_CHOICE:
 			# 多选题
 			if resultArray[self.correctAns].all() == 1:
