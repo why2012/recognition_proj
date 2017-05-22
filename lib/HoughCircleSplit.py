@@ -128,7 +128,7 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 	# cv2.imwrite("resources/test.jpg", img)
 	# 切割结果
 	splitArea = np.array([])
-	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, minWH * 0.08, param1 = 100, param2 = 10, minRadius = int(np.ceil(2 * scaleThresh)), maxRadius = int(50 * scaleThresh))
+	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, minWH * 0.08, param1 = 16, param2 = 8, minRadius = int(np.ceil(2 * scaleThresh)), maxRadius = int(30 * scaleThresh))
 	# 只取半径大于平均值的圆
 	avgRadius = np.average(circles[0, :, 2]) * 0.8
 	# avgRadius = 0
@@ -157,7 +157,8 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 		splitArea = cv2.warpPerspective(src = originalImg, M = transform, dsize =  (dw, dh))
 		blockListImg.append(splitArea)
 	if showImg:
-		showImgs(img, imgColor02, imgColor, *blockListImg)
+		# showImgs(img, imgColor02, imgColor, *blockListImg)
+		showImgs(img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
 
 
