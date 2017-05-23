@@ -6,6 +6,7 @@ from lib.CustomMarking import *
 from lib.SiftMatch import *
 from lib.PreProcessing import *
 from BaseController import *
+import urllib2 as url
 
 # quesType: [1, 2, 3, 4], 选择, 判断, 主观, 多选
 # todo: BLOCK_CHOICE BLOCK_MULTI_CHOICE
@@ -51,13 +52,14 @@ class MultiTypeScoreMarkController(BaseController):
 		# 过滤出黑色区域
 		img = filterBlack(img)
 		H, W, _ = img.shape
-		if self.quesType != SUBJECT: 
+		if self.quesType == SUBJECT: 
 			# 相对于宽度的高度
 			img = img[: int(self.SCORE_BAR_RATIO * W)]
 		# 划线
 		H, W, _ = img.shape
 		img = cv2.resize(img, (W * 7, H * 7))
-		centroid = lineMarking(img)
+		centroid = lineMarking(img, drawImg = False)
+		# 多次划线操作判断
 		resultArray = centroidMarkingX(centroid, self.col, W * 7)
 		self.setResult(self.markingScore(resultArray), STATUS_OK)
 

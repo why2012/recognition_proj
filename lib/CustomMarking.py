@@ -164,7 +164,13 @@ def centroidMarkingX(centroid, col, W):
 				localPoint.append(point)
 		for p in localPoint:
 			localCentroid.remove(p)
-		if len(localPoint) == 1:
+		# 多划线表示取消
+		# if len(localPoint) == 1:
+		# 	resultArray.append(1)
+		# else:
+		# 	resultArray.append(0)
+		# 划线表示选中，不判断次数
+		if len(localPoint) >= 1:
 			resultArray.append(1)
 		else:
 			resultArray.append(0)
