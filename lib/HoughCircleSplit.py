@@ -21,7 +21,7 @@ def showImgs(*imgs):
 def getSkewScale(topLeft, topRight, bottomRight, bottomLeft):
 	return []
 
-def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.4):
+def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.1):
 	topLeft = np.array([c1[0], c1[1]])
 	topRight = np.array([c2[0], c2[1]])
 	bottomRight = np.array([c3[0], c3[1]])
@@ -60,7 +60,8 @@ def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.4):
 	# 	print "--------------"
 	if whRatioBool and diagLengthRatioBool:
 		# 差异度
-		difference = np.abs(diagLengthRatio - thresh) + radiusVar
+		# difference = np.abs(diagLengthRatio - thresh) + radiusVar
+		difference = topLeft[0] + topLeft[1] + radiusVar
 		return True, (topLeft, topRight, bottomRight, bottomLeft), getSkewScale(topLeft, topRight, bottomRight, bottomLeft), difference
 	else:
 		return False, (), [], float('inf')
@@ -102,6 +103,7 @@ def determingCorrectCircles(circles, whRatio):
 	if correctResult:
 		# 选取差异度最小的candidate
 		correctResult = sorted(correctResult, key = lambda a: a["diff"])
+		# correctResult = sorted(correctResult, key = lambda a: a["circleTopLeft"][0])
 		minDiffResult = correctResult[0]
 		return minDiffResult["corners"], [minDiffResult["circleTopLeft"], minDiffResult["circleTopRight"], minDiffResult["circleBottomRight"], minDiffResult["circleBottomLeft"]], minDiffResult["skewScale"]
 	return [], (), []
@@ -128,7 +130,9 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 	# cv2.imwrite("resources/test.jpg", img)
 	# 切割结果
 	splitArea = np.array([])
-	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, minWH * 0.08, param1 = 16, param2 = 8, minRadius = int(np.ceil(2 * scaleThresh)), maxRadius = int(30 * scaleThresh))
+	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, minWH * 0.08, param1 = 16, param2 = 8, minRadius = int(np.ceil(minWH * 0.005)), maxRadius = int(np.ceil(minWH * 0.020)))
+	if circles is None:
+		return ([], [])
 	# 只取半径大于平均值的圆
 	avgRadius = np.average(circles[0, :, 2]) * 0.8
 	# avgRadius = 0
@@ -161,5 +165,58 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 		showImgs(img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
 
-
+def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, showImg = False):
+	imgSize = getImgSize(originalImg)
+	w, h = imgSize
+	# 按比例缩放
+	w, h = (np.int(w * scaleThresh), np.int(h * scaleThresh))
+	# 目标区域宽高
+	dw, dh = (int(paperW * scaleThresh), int(paperH * scaleThresh))
+	minWH = np.min((w, h))
+	if scaleThresh != 1.0:
+		originalImg = cv2.resize(originalImg, (w, h))
+		colorImg = cv2.resize(colorImg, (w, h))
+	if showImg:
+		# 调试， 画圆
+		imgColor = originalImg.copy()
+		# 调试， 画圆
+		imgColor02 = originalImg.copy()
+	img = grayImg(originalImg)
+	# cv2.imwrite("resources/test.jpg", img)
+	# 切割结果
+	splitArea = np.array([])
+	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 2, minWH * 0.08, param1 = 30, param2 = 10, minRadius = int(np.ceil(minWH * 0.005)), maxRadius = int(np.ceil(minWH * 0.020)))
+	if circles is None:
+		return ([], [])
+	# 只取半径大于平均值的圆
+	avgRadius = np.average(circles[0, :, 2]) * 0.8
+	# avgRadius = 0
+	circles = np.array([circles[0, circles[0, :, 2] >= avgRadius]])
+	# 确定四个边角圆
+	corners, correctCircles, _ = determingCorrectCircles(circles[0], float(paperW) / paperH)
+	corners = np.array(corners, dtype = np.float32)
+	# 画出过滤前的圆
+	if showImg and circles.any():
+		# 调试：画圆
+		circles = np.uint16(np.around(circles))
+		for i in circles[0]:
+			cv2.circle(imgColor02,(i[0],i[1]),i[2],(0,255,0),2)
+			cv2.circle(imgColor02,(i[0],i[1]),2,(0,0,255),3)
+	blockListImg = []
+	if correctCircles:
+		if showImg:
+			# 调试：画圆
+			correctCirclesUint = np.uint16(np.around(correctCircles))
+			for i in correctCirclesUint:
+				cv2.circle(imgColor,(i[0],i[1]),i[2],(0,255,0),2)
+				cv2.circle(imgColor,(i[0],i[1]),2,(0,0,255),3)
+		# 映射，切割
+		transPs = np.array([[0, 0], [dw, 0], [dw, dh], [0, dh]], dtype = np.float32)
+		transform = cv2.getPerspectiveTransform(corners, transPs)
+		splitArea = cv2.warpPerspective(src = colorImg, M = transform, dsize =  (dw, dh))
+		blockListImg.append(splitArea)
+	if showImg:
+		# showImgs(img, imgColor02, imgColor, *blockListImg)
+		showImgs(colorImg, imgColor02, imgColor)
+	return (correctCircles, blockListImg)
 

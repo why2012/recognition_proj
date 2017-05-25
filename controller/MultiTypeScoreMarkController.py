@@ -58,7 +58,7 @@ class MultiTypeScoreMarkController(BaseController):
 		# 划线
 		H, W, _ = img.shape
 		img = cv2.resize(img, (W * 7, H * 7))
-		centroid = lineMarking(img, drawImg = False)
+		centroid = lineMarking(img, drawImg = False, isColor = self.isColor)
 		# 多次划线操作判断
 		resultArray = centroidMarkingX(centroid, self.col, W * 7)
 		self.setResult({"score": self.markingScore(resultArray), "anslist": resultArray}, STATUS_OK)
@@ -122,6 +122,8 @@ class MultiTypeScoreMarkController(BaseController):
 		totalScore = self.getIntArg("totalScore")
 		# 正确答案的序号, 从0开始
 		correctAns = self.getIntArgs("correctAns")
+		self.isColor = self.getIntArg("isColor")
+		print self.getIntArgs("isColor")
 		col = self.getIntArg("col")
 		if quesType not in [CHOICE, JUDGE, SUBJECT, MULTI_CHOICE]:
 			raise ErrorStatusException("quesType must be a positive number in [1, 2, 3, 4]", STATUS_PARAM_ERROR)

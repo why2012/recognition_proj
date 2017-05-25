@@ -4,6 +4,8 @@ from lib.HoughCircleSplit import *
 import numpy as np
 import conf.Config as conf
 import urllib2 as url
+from scipy import ndimage
+from lib.PreProcessing import *
 
 class HoughCircleSplitController(BaseController):
 	def execute(self):
@@ -24,12 +26,35 @@ class HoughCircleSplitController(BaseController):
 		if self.paperH == -1:
 			self.paperH = QRCodeData["paperH"]
 		imgH, imgW, _ = img.shape
-		# 缩放至固定尺寸，方便调参
-		resizeW, resizeH = (int(self.paperW / 3.36), int(self.paperH / 3.46))#(1476, 1011)
-		img = cv2.resize(img, (resizeW, resizeH))
-		(circles, imgList) = circleSplit(img, self.paperW, self.paperH, scaleThresh = 1.0, showImg = False)
+		print (imgW, imgH), (self.paperW, self.paperH), self.isMobile, self.paperUrl
+		# 过滤出黑色区域
+		originImg = img
+		img = filterBlack(img)
+		# img = filterBlue(img)
+		if self.isMobile == -1:
+			if imgW >= 2000:
+				resizeW, resizeH = (int(imgW * 0.5), int(imgH * 0.5))
+			else:
+				resizeW, resizeH = (int(imgW * 0.8), int(imgH * 0.8))
+			# 缩放至固定尺寸，方便调参
+			# resizeW, resizeH = (int(self.paperW / 3.36), int(self.paperH / 3.46))# (1476, 1011)
+			img = cv2.resize(img, (resizeW, resizeH))
+			(circles, imgList) = circleSplit(img, self.paperW, self.paperH, scaleThresh = 1.0, showImg = False)
+		else:
+			# 旋转
+			# if not ((float(imgW) / imgH >= 1) and (float(self.paperW) / self.paperH >= 1)):
+			# 	# img = ndimage.rotate(img, -90)
+			# 	rotateMat = cv2.getRotationMatrix2D((imgW / 2, imgH / 2), -90, 1)
+			# 	img = cv2.warpAffine(img, rotateMat, (imgH, imgW))
+			if imgW >= 2000:
+				resizeW, resizeH = (int(imgW * 0.5), int(imgH * 0.5))
+			else:
+				resizeW, resizeH = (int(imgW * 0.8), int(imgH * 0.8))
+			originImg = cv2.resize(originImg, (resizeW, resizeH))
+			img = cv2.resize(img, (resizeW, resizeH))
+			(circles, imgList) = circleSplitMobile(img, self.paperW, self.paperH, scaleThresh = 1.0, colorImg = originImg, showImg = False)
 		if len(imgList) > 0 and self.opType == 0:
-			# cv2.imwrite("resources/tmp.png", imgList[0])
+			cv2.imwrite("resources/tmp/tmp.png", imgList[0])
 			retval, buf = cv2.imencode(".jpg", imgList[0])
 			if retval:
 				if int(self.version[2]) >= 10:
@@ -56,6 +81,7 @@ class HoughCircleSplitController(BaseController):
 		paperW = self.getIntArg("paperW")
 		paperH = self.getIntArg("paperH")
 		opType = self.getIntArg("opType")
+		self.isMobile = self.getIntArg("isMobile")
 		if opType < 0:
 			opType = 0 # 返回图片
 		if opType != 0 and opType !=1:

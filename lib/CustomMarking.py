@@ -90,14 +90,18 @@ def getLinesFromPolarCoord(polarLines, thresh = 4000):
 # c1 = int(boudingBox[1][0][0])
 # c2 = int(boudingBox[1][1][0])
 # cm.lineMarking(imgDest02[r1:r2, c1:c2], True)
-def lineMarking(img, drawImg = False):
+def lineMarking(img, drawImg = False, isColor = -1):
 	imgOrigin = img
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	img = cv2.GaussianBlur(img, (11, 11), 0)
 	img = cv2.Canny(img, 25, 50, apertureSize = 3)
 	# img = erosion(img, getKernel((3, 3)))
 	# img = dilation(img, getKernel((3, 3)))
-	lines = cv2.HoughLines(img, 1, np.pi / 360, 60)
+	# 黑白
+	if isColor == -1:
+		lines = cv2.HoughLines(img, 1, np.pi / 360, 60)
+	else:
+		lines = cv2.HoughLines(img, 1, np.pi / 360, 30)
 	lines = np.array(lines)
 	if not lines.any():
 		return []
