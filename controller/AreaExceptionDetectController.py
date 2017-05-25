@@ -18,17 +18,23 @@ class AreaExceptionDetectController(BaseController):
 		imgFeature = cv2.imread("resources/" + self.imgFeature)
 		H, W, _ = imgDest.shape
 		# boundingBox = siftMatchVertical(imgFeature, imgDest)
-		boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, method = "SIFT", resizeScale = 1, showImg = False)
+		boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.5, method = "SIFT", resizeScale = 1, showImg = False)
 		if boundingBox is not None and len(boundingBox) != 0:
 			boundingBox[:, :, 0] = boundingBox[:, :, 0] / float(W)
 			boundingBox[:, :, 1] = boundingBox[:, :, 1] / float(H)
-			self.setResult(boundingBox.tolist(), STATUS_OK)
+			boundingBox = boundingBox[0]
+			W = boundingBox[1][0] - boundingBox[0][0]
+			H = boundingBox[3][1] - boundingBox[0][1]
+			whRatio = float(W) / H
+			exception = not (whRatio >= (self.whRatio - self.thresh) and whRatio <= (self.whRatio + self.thresh))
+			self.setResult({"whRatio": whRatio, "exception": int(exception)}, STATUS_OK)
 		else:
-			self.setResult([], STATUS_SCAN_ERROR)
+			self.setResult({"whRatio": -1, "exception": 1}, STATUS_SCAN_ERROR)
 
 	@staticmethod
 	def checkParams(self):
 		whRatio = self.getIntArg("whRatio")
+		self.thresh = self.getIntArg("thresh", 4)
 		imgFeature = self.getStrArg("imgFeature").strip()
 		if whRatio == -1:
 			raise ErrorStatusException("whRatio must be a float number", STATUS_PARAM_ERROR)

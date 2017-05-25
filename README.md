@@ -257,9 +257,10 @@ paperH
 
 参数
 ```
-imgFeature // 特征模板,逗号分隔
+imgFeature // 特征模板,逗号分隔, 推荐 scorebar-lowres04.png
 imgDest // 待识别图像
-whRatio // 宽高比
+whRatio // 宽高比, 推荐7
+[thresh] // 容错值，默认4
 ```
 
 返回

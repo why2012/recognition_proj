@@ -123,7 +123,6 @@ class MultiTypeScoreMarkController(BaseController):
 		# 正确答案的序号, 从0开始
 		correctAns = self.getIntArgs("correctAns")
 		self.isColor = self.getIntArg("isColor")
-		print self.getIntArgs("isColor")
 		col = self.getIntArg("col")
 		if quesType not in [CHOICE, JUDGE, SUBJECT, MULTI_CHOICE]:
 			raise ErrorStatusException("quesType must be a positive number in [1, 2, 3, 4]", STATUS_PARAM_ERROR)
