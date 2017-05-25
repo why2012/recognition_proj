@@ -61,7 +61,7 @@ class MultiTypeScoreMarkController(BaseController):
 		centroid = lineMarking(img, drawImg = False)
 		# 多次划线操作判断
 		resultArray = centroidMarkingX(centroid, self.col, W * 7)
-		self.setResult(self.markingScore(resultArray), STATUS_OK)
+		self.setResult({"score": self.markingScore(resultArray), "anslist": resultArray}, STATUS_OK)
 
 	def markingScore(self, resultArray):
 		# 去掉多余的部分

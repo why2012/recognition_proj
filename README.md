@@ -108,7 +108,10 @@ totalScore // 总分
 {
 	"status": 0, 
 	"msg": "", 
-	"ans": 10 //分数
+	"ans": {
+    score: 10, //分数
+    anslist: [0, 1, 0, 0], //选项
+  }
 }
 ```
 
