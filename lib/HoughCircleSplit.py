@@ -111,7 +111,7 @@ def determineBoxRatioMobile(c1, c2, c3, c4, whRatio, thresh = 0.1):
 
 	if whRatioBool and diagLengthRatioBool:
 		# 差异度
-		difference = topLeft[0] + topLeft[1] + radiusVar # + 0.7 * (topRight[0] + topRight[1])
+		difference = topLeft[0] + topLeft[1] + radiusVar  + 0.7 * (topRight[0] + topRight[1])
 		return True, (topLeft, topRight, bottomRight, bottomLeft), getSkewScale(topLeft, topRight, bottomRight, bottomLeft), difference
 	else:
 		return False, (), [], float('inf')
@@ -235,13 +235,23 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 		# 调试， 画圆
 		imgColor02 = originalImg.copy()
 	img = grayImg(originalImg)
-	img = erosion(img, kernel = getKernel((7, 7)))
-	img = np.uint8(img - img * 0.6)
+	# img = erosion(img, kernel = getKernel((7, 7)))
+	# img = np.uint8(img - img * 0.6)
+
+	# tmpImg = img.copy()
+	imgBg = dilation(img, kernel = getKernel((30, 30)), iterations = 1)
+	_, imgBg = cv2.threshold(imgBg, 10, 255, cv2.THRESH_BINARY_INV)
+	img = np.uint8(img + imgBg)
+	img = dilation(img, kernel = getKernel((10, 10)))
+	img = erosion(img, iterations = 4)
+	# showImgs(tmpImg, imgBg, img)
+	# return ([], [])
+
 	# cv2.imwrite("resources/test.jpg", img)
 	# 切割结果
 	splitArea = np.array([])
-	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 2, minWH * 0.08, param1 = 30, param2 = 10, minRadius = int(np.ceil(minWH * 0.005)), maxRadius = int(np.ceil(minWH * 0.020)))
-	# circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 2, minWH * 0.08, param1 = 40, param2 = 20, minRadius = int(np.ceil(minWH * 0.005)), maxRadius = int(np.ceil(minWH * 0.020)))
+	# circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 2, minWH * 0.08, param1 = 30, param2 = 10, minRadius = int(np.ceil(minWH * 0.005)), maxRadius = int(np.ceil(minWH * 0.020)))
+	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 2, minWH * 0.08, param1 = 30, param2 = 10, minRadius = int(np.ceil(minWH * 0.001)), maxRadius = int(np.ceil(minWH * 0.020)))
 	if circles is None:
 		return ([], [])
 	# 只取半径大于平均值的圆
