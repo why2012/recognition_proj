@@ -29,23 +29,19 @@ class HoughCircleSplitController(BaseController):
 		print (imgW, imgH), (self.paperW, self.paperH), self.isMobile, self.paperUrl
 		# 过滤出黑色区域
 		originImg = img
-		img = filterBlack(img)
 		# img = filterBlue(img)
 		if self.isMobile == -1:
+			img = filterBlack(img)
 			if imgW >= 2000:
 				resizeW, resizeH = (int(imgW * 0.5), int(imgH * 0.5))
 			else:
 				resizeW, resizeH = (int(imgW * 0.8), int(imgH * 0.8))
 			# 缩放至固定尺寸，方便调参
-			# resizeW, resizeH = (int(self.paperW / 3.36), int(self.paperH / 3.46))# (1476, 1011)
+			# resizeW, resizeH = (int(self.paperW / 3.36), int(self.paperH / 3.46))# (1476, 1011) # 1300, 2000
 			img = cv2.resize(img, (resizeW, resizeH))
 			(circles, imgList) = circleSplit(img, self.paperW, self.paperH, scaleThresh = 1.0, showImg = False)
 		else:
-			# 旋转
-			# if not ((float(imgW) / imgH >= 1) and (float(self.paperW) / self.paperH >= 1)):
-			# 	# img = ndimage.rotate(img, -90)
-			# 	rotateMat = cv2.getRotationMatrix2D((imgW / 2, imgH / 2), -90, 1)
-			# 	img = cv2.warpAffine(img, rotateMat, (imgH, imgW))
+			img = filterBlack(img, [0, 0, 0], [180, 255, 70])
 			if imgW >= 2000:
 				resizeW, resizeH = (int(imgW * 0.5), int(imgH * 0.5))
 			else:

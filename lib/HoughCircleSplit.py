@@ -9,6 +9,21 @@ def getImgSize(img):
 def grayImg(img):
 	return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+def getKernel(size):
+	kernel = np.uint8(np.zeros(size))
+	kw, kh = kernel.shape
+	for x in range(kh):  
+		kernel[x, kw / 2] = 1 
+	for x in range(kw):  
+		kernel[kh / 2, x] = 1 
+	return kernel
+
+def erosion(grayImg, kernel = getKernel((4, 4)), iterations = 1):
+	return cv2.erode(grayImg, kernel, iterations = iterations)
+
+def dilation(grayImg, kernel = getKernel((4, 4)), iterations = 1):
+	return cv2.dilate(grayImg, kernel, iterations = iterations)  
+
 def showImgs(*imgs):
 	index = 0
 	for img in imgs:
@@ -66,7 +81,42 @@ def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.1):
 	else:
 		return False, (), [], float('inf')
 
-def determingCorrectCircles(circles, whRatio):
+def determineBoxRatioMobile(c1, c2, c3, c4, whRatio, thresh = 0.1):
+	topLeft = np.array([c1[0], c1[1]])
+	topRight = np.array([c2[0], c2[1]])
+	bottomRight = np.array([c3[0], c3[1]])
+	bottomLeft = np.array([c4[0], c4[1]])
+	# 上下，左右，宽高
+	w1 = np.sum((topRight - topLeft) * (topRight - topLeft))
+	w2 = np.sum((bottomRight - bottomLeft) * (bottomRight - bottomLeft))
+	h1 = np.sum((bottomLeft - topLeft) * (bottomLeft - topLeft))
+	h2 = np.sum((bottomRight - topRight) * (bottomRight - topRight))
+	# 宽高比
+	staRatio = whRatio * whRatio
+	ratio1 = w1 / h1
+	ratio2 = w2 / h2
+	ratio3 = w1 / h2
+	ratio4 = w2 / h1
+	diagLength1 = np.sum((topLeft - bottomRight) * (topLeft - bottomRight))
+	diagLength2 = np.sum((topRight - bottomLeft) * (topRight - bottomLeft))
+	# 宽高比判定
+	whRatioBool = (ratio1 >= staRatio - thresh and ratio1 <= staRatio + thresh) and (ratio2 >= staRatio - thresh and ratio2 <= staRatio + thresh) \
+				and (ratio3 >= staRatio - thresh and ratio3 <= staRatio + thresh) and (ratio4 >= staRatio - thresh and ratio4 <= staRatio + thresh)
+	# 对角线相对长度
+	diagLengthRatio = diagLength1 / diagLength2
+	diagLengthRatioBool = (diagLengthRatio >= 1 - thresh) and (diagLengthRatio <= 1 + thresh)
+	# 半径方差
+	radiusArr = np.array((c1[2], c2[2], c3[2], c4[2]))
+	radiusVar = np.sum(np.power(radiusArr - np.array([np.average(radiusArr)] * 4), 2))
+
+	if whRatioBool and diagLengthRatioBool:
+		# 差异度
+		difference = topLeft[0] + topLeft[1] + radiusVar # + 0.7 * (topRight[0] + topRight[1])
+		return True, (topLeft, topRight, bottomRight, bottomLeft), getSkewScale(topLeft, topRight, bottomRight, bottomLeft), difference
+	else:
+		return False, (), [], float('inf')
+
+def determingCorrectCircles(circles, whRatio, isMobile = False):
 	if len(circles) < 4:
 		return [], (), []
 	# 分别获取四个象限的点
@@ -95,7 +145,10 @@ def determingCorrectCircles(circles, whRatio):
 		for circleTopRight in topRightCircles:
 			for circleBottomRight in bottomRightCircles:
 				for circleBottomLeft in bottomLeftCircles:
-					result, corners, skewScale, difference = determineBoxRatio(circleTopLeft, circleTopRight, circleBottomRight, circleBottomLeft, whRatio)
+					if not isMobile:
+						result, corners, skewScale, difference = determineBoxRatio(circleTopLeft, circleTopRight, circleBottomRight, circleBottomLeft, whRatio)
+					else:
+						result, corners, skewScale, difference = determineBoxRatioMobile(circleTopLeft, circleTopRight, circleBottomRight, circleBottomLeft, whRatio)
 					if result:
 						correctResult.append({"diff": difference, "corners": corners, "skewScale": skewScale, \
 							"circleTopLeft": circleTopLeft, "circleTopRight": circleTopRight, "circleBottomRight": circleBottomRight, \
@@ -182,10 +235,13 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 		# 调试， 画圆
 		imgColor02 = originalImg.copy()
 	img = grayImg(originalImg)
+	img = erosion(img, kernel = getKernel((7, 7)))
+	img = np.uint8(img - img * 0.6)
 	# cv2.imwrite("resources/test.jpg", img)
 	# 切割结果
 	splitArea = np.array([])
 	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 2, minWH * 0.08, param1 = 30, param2 = 10, minRadius = int(np.ceil(minWH * 0.005)), maxRadius = int(np.ceil(minWH * 0.020)))
+	# circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 2, minWH * 0.08, param1 = 40, param2 = 20, minRadius = int(np.ceil(minWH * 0.005)), maxRadius = int(np.ceil(minWH * 0.020)))
 	if circles is None:
 		return ([], [])
 	# 只取半径大于平均值的圆
@@ -193,7 +249,7 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 	# avgRadius = 0
 	circles = np.array([circles[0, circles[0, :, 2] >= avgRadius]])
 	# 确定四个边角圆
-	corners, correctCircles, _ = determingCorrectCircles(circles[0], float(paperW) / paperH)
+	corners, correctCircles, _ = determingCorrectCircles(circles[0], float(paperW) / paperH, True)
 	corners = np.array(corners, dtype = np.float32)
 	# 画出过滤前的圆
 	if showImg and circles.any():
@@ -217,6 +273,6 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 		blockListImg.append(splitArea)
 	if showImg:
 		# showImgs(img, imgColor02, imgColor, *blockListImg)
-		showImgs(colorImg, imgColor02, imgColor)
+		showImgs(colorImg, img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
 
