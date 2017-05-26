@@ -36,7 +36,7 @@ def showImgs(*imgs):
 def getSkewScale(topLeft, topRight, bottomRight, bottomLeft):
 	return []
 
-def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.1):
+def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.2):
 	topLeft = np.array([c1[0], c1[1]])
 	topRight = np.array([c2[0], c2[1]])
 	bottomRight = np.array([c3[0], c3[1]])
