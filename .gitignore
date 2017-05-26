@@ -3,3 +3,4 @@
 ._*
 npm-debug.log
 resources/tmp/
+/logs/

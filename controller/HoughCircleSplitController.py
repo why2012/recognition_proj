@@ -51,7 +51,7 @@ class HoughCircleSplitController(BaseController):
 			img = cv2.resize(img, (resizeW, resizeH))
 			(circles, imgList) = circleSplitMobile(img, self.paperW, self.paperH, scaleThresh = 1.0, colorImg = originImg, showImg = False)
 		if len(imgList) > 0 and self.opType == 0:
-			cv2.imwrite("resources/tmp/tmp.png", imgList[0])
+			# cv2.imwrite("resources/tmp/tmp.png", imgList[0])
 			retval, buf = cv2.imencode(".jpg", imgList[0])
 			if retval:
 				if int(self.version[2]) >= 10:

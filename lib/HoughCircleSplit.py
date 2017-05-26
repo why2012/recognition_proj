@@ -111,7 +111,16 @@ def determineBoxRatioMobile(c1, c2, c3, c4, whRatio, thresh = 0.1):
 
 	if whRatioBool and diagLengthRatioBool:
 		# 差异度
-		difference = topLeft[0] + topLeft[1] + radiusVar  + 0.7 * (topRight[0] + topRight[1])
+		difference = topLeft[0] + topLeft[1] + radiusVar  + 0.7 * (topRight[0] + topRight[1]) + 5 * np.abs((topRight[1] - topLeft[1])) + np.abs((topRight[0] - bottomLeft[0]))
+		# 宽高比与对角线长度
+		# print whRatioBool, diagLengthRatioBool, staRatio
+		# print difference, topLeft[0] + topLeft[1], radiusVar, 0.7 * (topRight[0] + topRight[1]), 5 * np.abs((topRight[1] - topLeft[1])), np.abs((topRight[0] - bottomLeft[0]))
+		# print topLeft.tolist()
+		# print topRight.tolist()
+		# print bottomRight.tolist()
+		# print bottomLeft.tolist()
+		# print ratio1, ratio2, ratio3, ratio4
+		# print "--------------"
 		return True, (topLeft, topRight, bottomRight, bottomLeft), getSkewScale(topLeft, topRight, bottomRight, bottomLeft), difference
 	else:
 		return False, (), [], float('inf')

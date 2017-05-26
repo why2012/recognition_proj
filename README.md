@@ -73,9 +73,10 @@ totalScore // 题块总分
 
 参数
 ```
+type (1条码|2填涂)
 code // 条码或填涂区域图片绝对地址
-col	//行
-row	//列
+[col]	//行, type=2
+[row]	//列, type=2
 ```
 
 返回
