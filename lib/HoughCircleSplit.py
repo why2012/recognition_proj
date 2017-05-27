@@ -81,7 +81,7 @@ def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.2):
 	else:
 		return False, (), [], float('inf')
 
-def determineBoxRatioMobile(c1, c2, c3, c4, whRatio, thresh = 0.11):
+def determineBoxRatioMobile(c1, c2, c3, c4, whRatio, thresh = 0.2):
 	topLeft = np.array([c1[0], c1[1]])
 	topRight = np.array([c2[0], c2[1]])
 	bottomRight = np.array([c3[0], c3[1]])
@@ -108,6 +108,15 @@ def determineBoxRatioMobile(c1, c2, c3, c4, whRatio, thresh = 0.11):
 	# 半径方差
 	radiusArr = np.array((c1[2], c2[2], c3[2], c4[2]))
 	radiusVar = np.sum(np.power(radiusArr - np.array([np.average(radiusArr)] * 4), 2))
+	# # 宽高比与对角线长度
+	# if diagLengthRatioBool:
+	# 	print whRatioBool, diagLengthRatioBool, staRatio
+	# 	print topLeft.tolist()
+	# 	print topRight.tolist()
+	# 	print bottomRight.tolist()
+	# 	print bottomLeft.tolist()
+	# 	print ratio1, ratio2, ratio3, ratio4
+	# 	print "--------------"
 	if whRatioBool and diagLengthRatioBool:
 		# 差异度
 		difference = topLeft[0] + topLeft[1] + radiusVar  + 0.7 * (topRight[0] + topRight[1]) + 5 * np.abs((topRight[1] - topLeft[1])) + np.abs((topRight[0] - bottomLeft[0]))
@@ -265,7 +274,7 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 	_, imgBg = cv2.threshold(imgBg, 10, 255, cv2.THRESH_BINARY_INV)
 	img = np.uint8(img + imgBg)
 	img = dilation(img, kernel = getKernel((10, 10)))
-	img = erosion(img, iterations = 4)
+	img = erosion(img, iterations = 3)
 	# showImgs(tmpImg, imgBg, img)
 	# return ([], [])
 

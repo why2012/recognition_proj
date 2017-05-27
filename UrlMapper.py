@@ -10,6 +10,7 @@ from controller.CustomMarkingController import CustomMarkingController
 from controller.QuestionAreaMatchController import QuestionAreaMatchController
 from controller.MultiTypeScoreMarkController import MultiTypeScoreMarkController
 from controller.AreaExceptionDetectController import AreaExceptionDetectController
+from controller.HoughCircleSplitWithRotateController import HoughCircleSplitWithRotateController
 
 class UrlMapper(object):
 
@@ -21,6 +22,7 @@ class UrlMapper(object):
 			(r"/markingScore", ScoreMarkingController),
 			(r"/studentIdRecog", StudentIdRecogController),
 			(r"/paperSplit", HoughCircleSplitController),
+			(r"/paperSplitWithRotate", HoughCircleSplitWithRotateController),
 			(r"/paperMatch", SiftMatchController),
 			(r"/lineMarking", CustomMarkingController),
 			(r"/questionAreaMatch", QuestionAreaMatchController),

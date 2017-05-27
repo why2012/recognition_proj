@@ -201,7 +201,7 @@ imgDest // 待识别图像
 ```
 
 ### 四角标定点识别
-地址: /paperSplit
+地址: /paperSplit  /paperSplitWithRotate
 
 方法: post
 
@@ -212,6 +212,7 @@ paper 图片或图片绝对url
 paperW
 paperH
 [isMobile] 是否是照片, 手机拍照填1, 否则影响精度
+[imgFeature] /paperSplitWithRotate
 ```
 
 返回
