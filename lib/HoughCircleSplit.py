@@ -189,6 +189,8 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 		# 调试， 画圆
 		imgColor02 = originalImg.copy()
 	img = grayImg(originalImg)
+	img = dilation(img, kernel = getKernel((10, 10)))
+	img = erosion(img, iterations = 4)
 	# cv2.imwrite("resources/test.jpg", img)
 	# 切割结果
 	splitArea = np.array([])
@@ -247,6 +249,18 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 	# img = erosion(img, kernel = getKernel((7, 7)))
 	# img = np.uint8(img - img * 0.6)
 
+	# # ver-2-test
+	# #tmpImg = img.copy()
+	# imgBg = dilation(img, kernel = getKernel((40, 40)), iterations = 1)
+	# _, imgBg = cv2.threshold(imgBg, 10, 255, cv2.THRESH_BINARY_INV)
+	# imgBg = dilation(imgBg, kernel = getKernel((50, 50)), iterations = 1)
+	# img = np.uint8(img + imgBg)
+	# img = dilation(img, kernel = getKernel((15, 15)))
+	# img = erosion(img, iterations = 8)
+	# #showImgs(tmpImg, imgBg, img)
+	# #return ([], [])
+
+	# ver-1-valid
 	# tmpImg = img.copy()
 	imgBg = dilation(img, kernel = getKernel((30, 30)), iterations = 1)
 	_, imgBg = cv2.threshold(imgBg, 10, 255, cv2.THRESH_BINARY_INV)
