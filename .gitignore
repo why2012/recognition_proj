@@ -5,3 +5,4 @@ npm-debug.log
 resources/tmp/
 /logs/
 /dependency/
+nohup.out

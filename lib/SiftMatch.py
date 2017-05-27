@@ -153,6 +153,13 @@ def areaFilter(boundingBox):
 			# 	newBoundingBox.append(boundingBoxItem)
 	return newBoundingBox
 
+def getFlannMatcher():
+	FLANN_INDEX_KDTREE = 0
+	index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
+	search_params = dict(checks = 50)   # or pass empty dictionary
+	flann = cv2.FlannBasedMatcher(index_params, search_params)
+	return flann
+
 # imgFeature = cv2.imread("pics/IMG_1203.JPG")
 # imgDest = cv2.imread("pics/IMG_1205_SRC.JPG")
 # imgDest2 = cv2.imread("pics/IMG_1205_SRC2.JPG")
@@ -200,7 +207,7 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 # imgFeatureMix = np.uint8(imgFeature * 0.3 + imgFeature02Resize * 0.6 + imgFeature03Resize * 0.1)
 # 放大后的图像不清晰，破坏了特征
 # resizeScale = 2.0,暂定
-def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = False, octaveLayers = 8, resizeScale = 1.0, method = "SIFT", enableSubWindow = True, pyrDownRate = 2):
+def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = False, octaveLayers = 8, resizeScale = 1.0, method = "SIFT", enableSubWindow = True, pyrDownRate = 2, useFlann = False):
 	# imgFeature = cv2.pyrDown(imgFeature)
 	resizeScale = int(resizeScale)
 	# 下采样
@@ -230,9 +237,15 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 	if method != "SURF":
 		method = cv2.xfeatures2d.SIFT_create(nOctaveLayers = octaveLayers, contrastThreshold = 0.01, edgeThreshold = 10, sigma = 1.6)
 	else:
-		# 配合resizeScale = 5用
-		method = cv2.xfeatures2d.SURF_create(nOctaveLayers = octaveLayers);
-	bf = cv2.BFMatcher(cv2.NORM_L2)
+		if method == "ORB":
+			method = cv2.ORB_create()
+		else:
+			# 配合resizeScale = 5用
+			method = cv2.xfeatures2d.SURF_create(nOctaveLayers = octaveLayers)
+	if not useFlann:
+		bf = cv2.BFMatcher(cv2.NORM_L2)
+	else:
+		bf = getFlannMatcher()
 	# 提取模板特征
 	(kpsFeatureImg, descsFeatureImg) = method.detectAndCompute(imgFeature, None)
 	# print kpsFeatureImg

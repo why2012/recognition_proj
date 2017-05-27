@@ -287,6 +287,7 @@ whRatio // 宽高比, 推荐7
 imgFeature // qr.jpg
 imgDest // 待识别图像
 whRate // 默认1, 窗口比例
+octaveLayers // 默认1
 ```
 
 返回
