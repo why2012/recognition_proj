@@ -200,16 +200,13 @@ def siftTest(imgFeature, imgDest, matchResult = [], drawBoundingBox = True):
 # imgFeatureMix = np.uint8(imgFeature * 0.3 + imgFeature02Resize * 0.6 + imgFeature03Resize * 0.1)
 # 放大后的图像不清晰，破坏了特征
 # resizeScale = 2.0,暂定
-def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = False, octaveLayers = 8, resizeScale = 1.0, method = "SIFT"):
+def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = False, pyrDown = False, octaveLayers = 8, resizeScale = 1.0, method = "SIFT", enableSubWindow = True, pyrDownRate = 2):
 	# imgFeature = cv2.pyrDown(imgFeature)
 	resizeScale = int(resizeScale)
 	# 下采样
 	imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
 	if pyrDown:
-		imgDest = cv2.pyrDown(imgDest, dstsize = (imgDestWOrigin / 2, imgDestHOrigin / 2))
-	# imgDestHOrigin, imgDestWOrigin, _ = imgDest.shape
-	# imgDest = cv2.pyrDown(imgDest, dstsize = (imgDestWOrigin / 2, imgDestHOrigin / 2))
-
+		imgDest = cv2.pyrDown(imgDest, dstsize = (imgDestWOrigin / pyrDownRate, imgDestHOrigin / pyrDownRate))
 	imgFeatureGray = cv2.cvtColor(imgFeature, cv2.COLOR_BGR2GRAY)
 	imgDestGray = cv2.cvtColor(imgDest, cv2.COLOR_BGR2GRAY)
 	imgFeatureH, imgFeatureW = imgFeatureGray.shape
@@ -222,9 +219,12 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 	windowRangeExtend = []
 	# 生成子窗口
 	for windowYPos in windowRange:
-		extendH01 = windowYPos + windowHeight / 2.0
-		# extendH02 = windowYPos + windowHeight / 1.8
-		windowRangeExtend.append([windowYPos, extendH01])
+		if enableSubWindow:
+			extendH01 = windowYPos + windowHeight / 2.0
+			# extendH02 = windowYPos + windowHeight / 1.8
+			windowRangeExtend.append([windowYPos, extendH01])
+		else:
+			windowRangeExtend.append([windowYPos])
 	windowRange = windowRangeExtend
 	windowRange = np.int32(windowRange)
 	if method != "SURF":
@@ -300,7 +300,7 @@ def siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.05, showImg = Fa
 		cv2.imshow("img", imgBoundingBox)
 		cv2.waitKey(10)
 	if pyrDown:
-		boundingBox = boundingBox * 2
+		boundingBox = boundingBox * pyrDownRate
 	return boundingBox
 
 # 按匹配的特征点数量选择模板，在匹配短区域时短模板吃亏，按特征点占比选择，在匹配长区域时长模板吃亏
