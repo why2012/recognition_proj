@@ -32,11 +32,11 @@ class HoughCircleSplitWithRotateController(BaseController):
 			queryData = urlparse.urlparse(qrcode).query
 			queryData = urlparse.parse_qs(queryData)
 			print queryData
-			# # ---test---
-			# queryData['paperType'] = 'a3'
-			# queryData['id'] = '111'
-			# queryData['pageNumber'] = 111
-			# # -----------
+			# ---test---
+			queryData['paperType'] = 'a3'
+			queryData['id'] = '111'
+			queryData['pageNumber'] = 111
+			# -----------
 			if 'paperType' not in queryData or 'pageNumber' not in queryData or 'id' not in queryData:
 				self.setResult([], STATUS_SCAN_ERROR)
 				return
@@ -73,7 +73,7 @@ class HoughCircleSplitWithRotateController(BaseController):
 					resizeW, resizeH = (int(imgW * 0.8), int(imgH * 0.8))
 				originImg = cv2.resize(originImg, (resizeW, resizeH))
 				img = cv2.resize(img, (resizeW, resizeH))
-				(circles, imgList) = circleSplitMobile(img, QRCodeData["paperW"], QRCodeData["paperH"], scaleThresh = 1.0, colorImg = originImg, showImg = False)
+				(circles, imgList) = circleSplitMobile(img, QRCodeData["paperW"], QRCodeData["paperH"], scaleThresh = 1.0, colorImg = originImg, records = True, showImg = False)
 			if len(imgList) > 0 and self.opType == 0:
 				# cv2.imwrite("resources/tmp/tmp.png", imgList[0])
 				retval, buf = cv2.imencode(".jpg", imgList[0])
@@ -96,7 +96,7 @@ class HoughCircleSplitWithRotateController(BaseController):
 			filename = "tmp/data/%s.qrdata" % self.qrid
 			if os.path.isfile(filename):
 				with open(filename, "r") as qrfile:
-					qrdata = qrfile.readline()
+					qrdata = json.loads(qrfile.readline())
 				# os.remove(filename)
 				self.setResult(qrdata, STATUS_OK)
 			else:

@@ -1,6 +1,7 @@
 #coding:utf-8
 import cv2
 import numpy as np
+import json
 
 # 图片宽度对应数组列数，高度对应数组行数
 def getImgSize(img):
@@ -237,7 +238,7 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 		showImgs(img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
 
-def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, showImg = False):
+def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, showImg = False, records = False):
 	imgSize = getImgSize(originalImg)
 	w, h = imgSize
 	# 按比例缩放
@@ -285,6 +286,7 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 	circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 2, minWH * 0.08, param1 = 30, param2 = 10, minRadius = int(np.ceil(minWH * 0.001)), maxRadius = int(np.ceil(minWH * 0.020)))
 	if circles is None:
 		return ([], [])
+	originCircles = circles.copy()
 	# 只取半径大于平均值的圆
 	avgRadius = np.average(circles[0, :, 2]) * 0.8
 	# avgRadius = 0
@@ -315,5 +317,12 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 	if showImg:
 		# showImgs(img, imgColor02, imgColor, *blockListImg)
 		showImgs(colorImg, img, imgColor02, imgColor)
+	# resource competition
+	if records and correctCircles is not None and correctCircles != []:
+		with open("tmp/data/saved.circledata", "a") as cfile:
+			cfile.write(json.dumps([[c.tolist() for c in correctCircles], originCircles.tolist()], ensure_ascii=False) + "\n");
 	return (correctCircles, blockListImg)
+
+
+
 
