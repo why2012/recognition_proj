@@ -201,7 +201,7 @@ imgDest // 待识别图像
 ```
 
 ### 四角标定点识别
-地址: /paperSplit  /paperSplitWithRotate
+地址: /paperSplit  
 
 方法: post
 
@@ -212,7 +212,6 @@ paper 图片或图片绝对url
 paperW
 paperH
 [isMobile] 是否是照片, 手机拍照填1, 否则影响精度
-[imgFeature] /paperSplitWithRotate
 ```
 
 返回
@@ -318,5 +317,37 @@ octaveLayers // 默认1
         ]
       ]
   ]
+}
+```
+
+### 四角标定点识别-自动检测旋转，识别二维码
+地址: /paperSplitWithRotate
+
+方法: post
+
+参数
+```
+opType 0: 返回图片, 1: 返回二维码
+[paper]  图片或图片绝对url; opType 0
+[isMobile] 是否是照片, 手机拍照填1, 否则影响精度; opType 0
+[qrid] 查询id; opType 1
+```
+二维码数据格式规范
+```
+url内必须包含paperType， pageNumber 和 id三个GET查询字段
+paperType字段内容必须小写
+```
+
+返回
+```
+opType 0:
+  图片
+  
+opType 1:
+
+{
+  "status": 0,
+  "msg": "",
+  "ans": "{\"pageNumber\": 111, \"wd\": [\"草料二维码\"], \"ie\": [\"utf-8\"], \"id\": \"111\", \"paperType\": \"a3\"}"
 }
 ```

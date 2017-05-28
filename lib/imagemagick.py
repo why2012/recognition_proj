@@ -7,20 +7,24 @@ import cv2
 from SiftMatch import *
 import platform
 import zbar
+import math
 
 def detectAndGetImage(img, imgFeature, baseDir):
 	#print "-------"
 	orientation, qrcode = detectOrientation(img, imgFeature)
 	if orientation == -1:
 		return None, -1
-	#print "-------1"
-	imgPath = writeImage(img, baseDir)
-	#print "-------2"
-	rotateImage(imgPath, orientation)
-	img =  cv2.imread(imgPath)
-	deleteImage(imgPath)
-	#print "-------3"
-	return img, qrcode, imgPath
+	# #print "-------1"
+	# imgPath = writeImage(img, baseDir)
+	# #print "-------2"
+	# rotateImage(imgPath, orientation)
+	# img =  cv2.imread(imgPath)
+	# deleteImage(imgPath)
+	# #print "-------3"
+	# return img, qrcode
+
+	img = rotateImageWithCV(img, orientation)
+	return img, qrcode
 
 def readQR(img):
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -42,9 +46,9 @@ def readQR(img):
 
 def detectOrientation(img, imgFeature):
 	H, W, _ = img.shape
-	leftTopPoint = [[H / 2, W / 2], [0, W / 2], [0, 0], [H / 2, 0]]
-	stepSize = [[H, W], [H / 2, W], [H / 2, W / 2], [H, W / 2]]
-	orientation = -1 # 1, 2, 3, 4 bottomRight, topRight, topLeft, bottomRight
+	leftTopPoint = [[H / 2, W / 2], [H / 2, 0], [0, 0], [0, W / 2]]
+	stepSize = [[H, W], [H, W / 2], [H / 2, W / 2], [H / 2, W]]
+	orientation = -1 # 1, 2, 3, 4 bottomRight, bottomLeft, topLeft, topRight
 	qrcode = -1
 	for i in range(4):
 		# cropImg = img[leftTopPoint[i][0]: stepSize[i][0], leftTopPoint[i][1]: stepSize[i][1]]
@@ -83,8 +87,44 @@ def writeImage(img, pathDir):
 def deleteImage(imgPath):
 	os.system("rm %s" % (imgPath))
 
+def rotate_about_center(src, angle, scale = 1.):
+	w = src.shape[1]
+	h = src.shape[0]
+	rangle = np.deg2rad(angle)  # angle in radians
+	# now calculate new image width and height
+	nw = (abs(np.sin(rangle) * h) + abs(np.cos(rangle) * w)) * scale
+	nh = (abs(np.cos(rangle) * h) + abs(np.sin(rangle) * w)) * scale
+	# ask OpenCV for the rotation matrix
+	rot_mat = cv2.getRotationMatrix2D((nw * 0.5, nh * 0.5), angle, scale)
+	# calculate the move from the old center to the new center combined
+	# with the rotation
+	rot_move = np.dot(rot_mat, np.array([(nw - w) * 0.5, (nh - h) * 0.5,0]))
+	# the move only affects the translation, so update the translation
+	# part of the transform
+	rot_mat[0, 2] += rot_move[0]
+	rot_mat[1, 2] += rot_move[1]
+	return cv2.warpAffine(src, rot_mat, (int(math.ceil(nw)), int(math.ceil(nh))), flags = cv2.INTER_LANCZOS4)
+
 # 顺时针
-def rotateImage(imgPath, orientation):
+def rotateImageWithCV(img, orientation):
+	if orientation not in [1, 2, 3, 4]:
+		return
+	degree = 0
+	if orientation == 1:
+		degree = 180
+	elif orientation == 2:
+		degree = 90
+	elif orientation == 3:
+		degree = 0
+	elif orientation == 4:
+		degree = -90
+	if degree != 0:
+		return rotate_about_center(img, -degree)
+	else:
+		return img
+
+# 顺时针
+def rotateImageWithConvert(imgPath, orientation):
 	if orientation not in [1, 2, 3, 4]:
 		return
 	img = cv2.imread(imgPath)
@@ -92,9 +132,10 @@ def rotateImage(imgPath, orientation):
 	if orientation == 1:
 		degree = 180
 	elif orientation == 2:
-		degree = -90
+		degree = 90
 	elif orientation == 3:
 		degree = 0
 	elif orientation == 4:
-		degree = 90
-	os.system("convert -rotate %d %s %s" % (degree, imgPath, imgPath))
+		degree = -90
+	if degree != 0:
+		os.system("convert -rotate %d %s %s" % (degree, imgPath, imgPath))
