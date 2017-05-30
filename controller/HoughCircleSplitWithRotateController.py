@@ -32,11 +32,11 @@ class HoughCircleSplitWithRotateController(BaseController):
 			queryData = urlparse.urlparse(qrcode).query
 			queryData = urlparse.parse_qs(queryData)
 			print queryData
-			# ---test---
-			queryData['paperType'] = 'a3'
-			queryData['id'] = '111'
-			queryData['pageNumber'] = 111
-			# -----------
+			# # ---test---
+			# queryData['paperType'] = 'a3'
+			# queryData['id'] = '111'
+			# queryData['pageNumber'] = 111
+			# # -----------
 			if 'paperType' not in queryData or 'pageNumber' not in queryData or 'id' not in queryData:
 				self.setResult([], STATUS_SCAN_ERROR)
 				return
@@ -78,7 +78,7 @@ class HoughCircleSplitWithRotateController(BaseController):
 				# cv2.imwrite("resources/tmp/tmp.png", imgList[0])
 				retval, buf = cv2.imencode(".jpg", imgList[0])
 				if retval:
-					with open("tmp/data/%s.qrdata" % QRCodeData['id'], "w") as qrfile:
+					with open("tmp/data/%s.qrdata" % self.qrid, "w") as qrfile:
 						qrfile.write(json.dumps(queryData, ensure_ascii=False));
 					if int(self.version[2]) >= 10:
 						rawData = buf.tobytes()
@@ -94,11 +94,20 @@ class HoughCircleSplitWithRotateController(BaseController):
 		# 返回二维码数据
 		if self.opType == 1:
 			filename = "tmp/data/%s.qrdata" % self.qrid
+			suffix = "read"
+			if not os.path.isfile(filename):
+				filename = "tmp/data/%s.qrdata.%s" % (self.qrid, suffix)
 			if os.path.isfile(filename):
 				with open(filename, "r") as qrfile:
 					qrdata = json.loads(qrfile.readline())
-				# os.remove(filename)
 				self.setResult(qrdata, STATUS_OK)
+				if not filename.endswith(suffix):
+					newFilename = filename + "." + suffix
+					os.rename(filename, newFilename)
+				readFile = filter(lambda f: f.endswith("read"), os.listdir("tmp/data/"))
+				# 移除历史数据
+				if readFile is not None and len(readFile) >= 10000:
+					os.system("rm tmp/data/*.read")
 			else:
 				raise ErrorStatusException("qrid[%s] does not exit" % self.qrid, STATUS_PARAM_ERROR)
 
@@ -121,10 +130,10 @@ class HoughCircleSplitWithRotateController(BaseController):
 				self.paperUrl = self.getStrArg("paper")
 			else:
 				self.paperUrl = None
-		if opType == 1:
-			qrid = self.getStrArg("qrid")
-			if qrid is None or qrid == "":
-				raise ErrorStatusException("qrid must not be null", STATUS_PARAM_ERROR)
-			self.qrid = qrid
+
+		qrid = self.getStrArg("qrid")
+		if qrid is None or qrid == "":
+			raise ErrorStatusException("qrid must not be null, its a unique identification.", STATUS_PARAM_ERROR)
+		self.qrid = qrid
 
 
