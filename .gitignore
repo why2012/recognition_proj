@@ -6,3 +6,6 @@ resources/tmp/
 /logs/
 /dependency/
 nohup.out
+*.circledata
+*.qrdata
+*.read
