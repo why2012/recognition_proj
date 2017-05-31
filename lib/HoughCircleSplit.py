@@ -198,8 +198,8 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 		# 调试， 画圆
 		imgColor02 = originalImg.copy()
 	img = grayImg(originalImg)
-	img = dilation(img, kernel = getKernel((10, 10)))
-	img = erosion(img, iterations = 4)
+	# img = dilation(img, kernel = getKernel((10, 10)))
+	# img = erosion(img, iterations = 4)
 	# cv2.imwrite("resources/test.jpg", img)
 	# 切割结果
 	splitArea = np.array([])
