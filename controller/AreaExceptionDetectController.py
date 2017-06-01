@@ -18,7 +18,7 @@ class AreaExceptionDetectController(BaseController):
 		imgFeature = cv2.imread("resources/" + self.imgFeature)
 		H, W, _ = imgDest.shape
 		# boundingBox = siftMatchVertical(imgFeature, imgDest)
-		boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 0.5, method = "SIFT", octaveLayers = 10, resizeScale = 1, useFlann = False, showImg = False)
+		boundingBox = siftMatchVertical(imgFeature, imgDest, windowHeightRate = 1.0, method = "SIFT", octaveLayers = 10, resizeScale = 2, useFlann = False, showImg = False)
 		if boundingBox is not None and len(boundingBox) != 0:
 			boundingBox[:, :, 0] = boundingBox[:, :, 0] / float(W)
 			boundingBox[:, :, 1] = boundingBox[:, :, 1] / float(H)
