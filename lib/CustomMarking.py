@@ -99,7 +99,7 @@ def lineMarking(img, drawImg = False, isColor = -1):
 	# img = dilation(img, getKernel((3, 3)))
 	# 黑白
 	if isColor == -1:
-		lines = cv2.HoughLines(img, 1, np.pi / 360, 60)
+		lines = cv2.HoughLines(img, 1, np.pi / 360, 50)
 	else:
 		lines = cv2.HoughLines(img, 1, np.pi / 360, 30)
 	lines = np.array(lines)
@@ -115,7 +115,7 @@ def lineMarking(img, drawImg = False, isColor = -1):
 	linesTrain = lines - (min(lines[:, 0]), min(lines[:, 1]))
 	linesTrain[:, 1] = linesTrain[:, 1] * 100
 	# 根据倾角聚类
-	db = DBSCAN(eps = 30, min_samples = 1).fit(linesTrain)
+	db = DBSCAN(eps = 50, min_samples = 1).fit(linesTrain)
 	labelSet = set(db.labels_)
 	newLines = []
 	# 得到n类数据，每一类取平均值
