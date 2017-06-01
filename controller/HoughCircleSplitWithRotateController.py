@@ -79,8 +79,8 @@ class HoughCircleSplitWithRotateController(BaseController):
 				# cv2.imwrite("resources/tmp/tmp.png", imgList[0])
 				retval, buf = cv2.imencode(".jpg", imgList[0])
 				if retval:
-					with open("tmp/data/%s.qrdata" % self.qrid, "w") as qrfile:
-						qrfile.write(json.dumps(queryData, ensure_ascii=False));
+					# with open("tmp/data/%s.qrdata" % self.qrid, "w") as qrfile:
+					# 	qrfile.write(json.dumps(queryData, ensure_ascii=False));
 					if int(self.version[2]) >= 10:
 						rawData = buf.tobytes()
 					else:

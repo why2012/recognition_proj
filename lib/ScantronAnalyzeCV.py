@@ -486,7 +486,7 @@ def readCard(img, details = [], mode = "noise"):
 	answerCount = details["answerCount"]
 	# 灰度图
 	img = grayImg(img)
-	w, h = img.shape
+	h, w = img.shape
 	# otsu二值化
 	img = binaryInv(img)
 	# 低通滤波
@@ -497,6 +497,8 @@ def readCard(img, details = [], mode = "noise"):
 	# 膨胀， 实际效果为缩小填涂区域
 	if mode == "noise":
 		img = dilation(img, iterations = 1)
+	if mode == "noise":
+		img = erosion(img, iterations = 1)
 	# 裁剪
 	if area:
 		rectImg01 = img[area[0]: area[1], area[2]: area[3]]
@@ -523,6 +525,8 @@ def readCard(img, details = [], mode = "noise"):
 	# 四个题组
 	ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
 		, restrictArea = True, restrictAreaThresh = 0.20)
+	# ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, w, h
+	# 	, restrictArea = True, restrictAreaThresh = 0.18)
 	# 调试:画出轮廓
 	# showImg(rectImg01, whiteImg)	
 	return ansMap
