@@ -445,8 +445,9 @@ def determineAnswer(ansBoxCenter, questionCount, answerCount, W, H, restrictArea
 # W,H为作答区域的宽高
 # spaceStep为每个题组的间隔长度，默认一个填涂区域大小
 # 返回答题结果，questionCount * answerCount的二位数组，置1位代表填涂，置0位代表未填涂
-def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, H, spaceStep = 1, restrictArea = True, restrictAreaThresh = 0.2):
+def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, H, spaceStep = 1, restrictArea = True, restrictAreaThresh = 0.2, baseYBias = 0):
 	baseX = baseY = 0
+	baseY += baseYBias
 	stepX = int(float(W) / (questionCount * groupCount + groupCount - 1))
 	stepY = int(np.ceil(float(H) / answerCount))
 	standardS = stepX * stepY
@@ -476,7 +477,7 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 	return answerMap
 
 # main function
-def readCard(img, details = [], mode = "noise", showImgs = False):
+def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = False):
 	if "area" not in details or not details["area"]:
 		area = None 
 	else:
@@ -530,7 +531,7 @@ def readCard(img, details = [], mode = "noise", showImgs = False):
 	# ansMap = determineAnswer(ansBoxCenter, 5, 4, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1])
 	# 四个题组
 	ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
-		, restrictArea = True, restrictAreaThresh = 0.20)
+		, restrictArea = True, restrictAreaThresh = 0.20, baseYBias = baseYBias)
 	# ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, w, h
 	# 	, restrictArea = True, restrictAreaThresh = 0.18)
 	if showImgs:

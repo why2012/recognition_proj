@@ -7,7 +7,7 @@ import numpy as np
 import urllib2 as url
 
 class ScantronRecogController(BaseController):
-	def execute(self):
+	def execute(self, baseYBias = 0):
 		ScantronRecogController.checkParams(self)
 		if not self.cardUrl:
 			img = self.processUpFile("card")
@@ -21,7 +21,7 @@ class ScantronRecogController(BaseController):
 		details["questionCount"] = self.col
 		details["answerCount"] = self.row
 		details["groupCount"] = self.groupCount
-		self.setResult(self.recog(img, details).T.tolist(), STATUS_OK)
+		self.setResult(self.recog(img, details, baseYBias = baseYBias).T.tolist(), STATUS_OK)
 
 	@staticmethod
 	def checkParams(self):
@@ -44,5 +44,5 @@ class ScantronRecogController(BaseController):
 		else:
 			self.cardUrl = None
 
-	def recog(self, img, details):
-		return readCard(img, details)
+	def recog(self, img, details, baseYBias = 0):
+		return readCard(img, details, baseYBias = baseYBias)
