@@ -2,6 +2,7 @@
 import cv2
 import numpy as np
 import json
+import lib.ScantronAnalyzeCV as sc
 
 # 图片宽度对应数组列数，高度对应数组行数
 def getImgSize(img):
@@ -237,6 +238,96 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 	if showImg:
 		# showImgs(img, imgColor02, imgColor, *blockListImg)
 		showImgs(img, imgColor02, imgColor)
+	return (correctCircles, blockListImg)
+
+def removeLargeBlackArea(img, thresh = 0.0007, showImg = False):
+	originalImg = img
+	_, img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY_INV)
+	H, W = img.shape
+	S = H * W
+	contours, hierarchy = sc.findContours(img, cv2.RETR_LIST)
+	filterContours = []
+	for contour in contours:
+		# print cv2.contourArea(contour), S * thresh
+		if cv2.contourArea(contour) >= S * thresh:
+			filterContours.append(contour)
+	fgImg = sc.createWhiteImg((W, H))
+	sc.drawContours(fgImg, filterContours, (0, 0, 0), -1)
+	_, fgImg = cv2.threshold(fgImg, 10, 255, cv2.THRESH_BINARY_INV)
+	img = np.uint8(fgImg + originalImg)
+	img = dilation(img, kernel = getKernel((9, 9)))
+	_, img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY_INV)
+	contours_circle, hierarchy_circle = sc.findContours(img, cv2.RETR_LIST)
+	if showImg:
+		whiteImg = sc.createWhiteImg((W, H))
+		sc.drawContours(whiteImg, contours_circle, (0, 0, 0), -1)
+		cv2.imshow("contour_fg", img)
+		cv2.imshow("contour", whiteImg)
+		cv2.waitKey(10)
+	return contours_circle
+
+def getCircles(contours):
+	topCircles = []
+	contourS = []
+	for i, contour in enumerate(contours):
+		contourS.append((cv2.contourArea(contour), i))
+	contourS.sort(key = lambda x: x[0], reverse = True)
+	if len(contourS) < 4:
+		return []
+	for cSI in contourS:
+		cS = contours[cSI[1]]
+		x, y, w, h = cv2.boundingRect(cS)
+		centralX, centralY, R = np.ceil((x * 2 + w) / 2.0), np.ceil((y * 2 + h) / 2.0), (w + h) / 4
+		topCircles.append([centralX, centralY, R])
+	return np.array(topCircles)
+
+def circleSplitMobilePlus(originalImg, paperW, paperH, colorImg, resizeScale, scaleThresh = 1.0, showImg = False, records = False):
+	imgSize = getImgSize(originalImg)
+	w, h = imgSize
+	# 目标区域宽高
+	dw, dh = paperW, paperH
+	if showImg:
+		imgColor = originalImg.copy()
+		imgColor02 = originalImg.copy()
+	img = grayImg(originalImg)
+	contours_circle = removeLargeBlackArea(img, showImg = showImg)
+	circles = getCircles(contours_circle)
+	if circles is None or len(circles) == 0:
+		return ([], [])
+	if len(circles) >= 10:
+		# 只取半径大于平均值的圆
+		avgRadius = np.average(circles[:, 2])
+		# avgRadius = 0
+		circles = np.array([circles[circles[:, 2] >= avgRadius]])[0]
+	# print circles
+	# 切割结果
+	splitArea = np.array([])
+	# 确定四个边角圆
+	corners, correctCircles, _ = determingCorrectCircles(circles, float(paperW) / paperH, True)
+	corners = np.array(corners, dtype = np.float32)
+	# 画出过滤前的圆
+	if showImg and circles.any():
+		# 调试：画圆
+		circles = np.uint16(np.around(circles))
+		for i in circles:
+			cv2.circle(imgColor02,(i[0],i[1]),i[2],(0,255,0),2)
+			cv2.circle(imgColor02,(i[0],i[1]),2,(0,0,255),3)
+	blockListImg = []
+	if correctCircles:
+		if showImg:
+			# 调试：画圆
+			correctCirclesUint = np.uint16(np.around(correctCircles))
+			for i in correctCirclesUint:
+				cv2.circle(imgColor,(i[0],i[1]),i[2],(0,255,0),2)
+				cv2.circle(imgColor,(i[0],i[1]),2,(0,0,255),3)
+		cH, cW, _ = colorImg.shape
+		transPs = np.array([[0, 0], [cW, 0], [cW, cH], [0, cH]], dtype = np.float32)
+		transform = cv2.getPerspectiveTransform(corners / resizeScale, transPs)
+		splitArea = cv2.warpPerspective(src = colorImg, M = transform, dsize =  (cW, cH))
+
+		blockListImg.append(splitArea)
+	if showImg:
+		showImgs(colorImg, img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
 
 def circleSplitMobile(originalImg, paperW, paperH, colorImg, resizeScale, scaleThresh = 1.0, showImg = False, records = False):

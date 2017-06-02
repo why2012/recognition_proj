@@ -84,7 +84,8 @@ class HoughCircleSplitWithRotateController(BaseController):
 					resizeScale = 0.8
 				resizeW, resizeH = (int(imgW * resizeScale), int(imgH * resizeScale))
 				img = cv2.resize(img, (resizeW, resizeH))
-				(circles, imgList) = circleSplitMobile(img, QRCodeData["paperW"], QRCodeData["paperH"], scaleThresh = 1.0, colorImg = originImg, resizeScale = resizeScale, records = True, showImg = False)
+				# (circles, imgList) = circleSplitMobile(img, QRCodeData["paperW"], QRCodeData["paperH"], scaleThresh = 1.0, colorImg = originImg, resizeScale = resizeScale, records = True, showImg = False)
+				(circles, imgList) = circleSplitMobilePlus(img, QRCodeData["paperW"], QRCodeData["paperH"], scaleThresh = 1.0, colorImg = originImg, resizeScale = resizeScale, records = True, showImg = False)
 			if len(imgList) > 0 and self.opType == 0:
 				# cv2.imwrite("resources/tmp/tmp.png", imgList[0])
 				retval, buf = cv2.imencode(".jpg", imgList[0])
