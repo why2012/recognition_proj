@@ -32,18 +32,17 @@ class HoughCircleSplitWithRotateController(BaseController):
 			queryData = urlparse.urlparse(qrcode).query
 			queryData = urlparse.parse_qs(queryData)
 			print queryData
-			# # ---test---
-			# queryData['paperType'] = 'a3'
-			# queryData['id'] = '111'
-			# queryData['pageNumber'] = 111
-			# # -----------
+			# ---test---
+			queryData['paperType'] = ['a3']
+			queryData['id'] = ['111']
+			queryData['pageNumber'] = ['111']
+			# -----------
 			if 'paperType' not in queryData or 'pageNumber' not in queryData or 'id' not in queryData:
 				self.setResult([], STATUS_SCAN_ERROR)
 				return
-			queryData['paperType'] = queryData['paperType'].lower()
-			QRCodeData['paperType'] = queryData['paperType']
-			QRCodeData['pageNumber'] = queryData['pageNumber']
-			QRCodeData['id'] = queryData['id']
+			QRCodeData['paperType'] = queryData['paperType'][0].lower()
+			QRCodeData['pageNumber'] = queryData['pageNumber'][0]
+			QRCodeData['id'] = queryData['id'][0]
 
 			# 单开
 			if QRCodeData['paperType'] in ["a4", "16k", "b5"]:
