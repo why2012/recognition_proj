@@ -116,7 +116,10 @@ class MultiTypeScoreMarkController(BaseController):
 				# 同时选中多个个位数区域
 				elif (scoreIndex in SCORE_BAR_AREA1 and plusScoreIndex in SCORE_BAR_AREA1):
 					return -1
-				return SCORE_BAR[scoreIndex] + SCORE_BAR[plusScoreIndex]
+				totalScore = SCORE_BAR[scoreIndex] + SCORE_BAR[plusScoreIndex]
+				if totalScore > self.totalScore:
+					return -1
+				return totalScore
 			else:
 				# 异常情况
 				return -1
