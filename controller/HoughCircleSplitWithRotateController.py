@@ -9,6 +9,7 @@ from lib.PreProcessing import *
 from lib.imagemagick import detectAndGetImage
 import urlparse
 import json
+import os
 import sys
 reload(sys).setdefaultencoding( "utf-8" )
 
