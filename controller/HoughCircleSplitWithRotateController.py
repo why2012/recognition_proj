@@ -9,7 +9,8 @@ from lib.PreProcessing import *
 from lib.imagemagick import detectAndGetImage
 import urlparse
 import json
-import os
+import sys
+reload(sys).setdefaultencoding( "utf-8" )
 
 class HoughCircleSplitWithRotateController(BaseController):
 	def execute(self):
@@ -17,11 +18,18 @@ class HoughCircleSplitWithRotateController(BaseController):
 		if self.opType == 0:
 			if not self.paperUrl:
 				rawData = self.processUpFile("paper")
+				img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)# IMREAD_COLOR
 			else:
 				# 从其他地方获取图片
-				res = url.urlopen(self.paperUrl)
-				rawData = res.read()
-			img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)# IMREAD_COLOR
+				# url
+				if self.paperUrl.lower().startswith("http"):
+					res = url.urlopen(self.paperUrl)
+					rawData = res.read()
+					img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)# IMREAD_COLOR
+				else:
+				# local
+					print self.paperUrl
+					img = cv2.imread(self.paperUrl)
 			# 二维码
 			QRCodeData = {"paperW": 1476, "paperH": 1011, "id": -1, "pageNumber": 1}
 			img, qrcode = detectAndGetImage(img, self.imgFeature, "tmp/image/")
