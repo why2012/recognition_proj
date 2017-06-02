@@ -448,7 +448,7 @@ def determineAnswer(ansBoxCenter, questionCount, answerCount, W, H, restrictArea
 def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, H, spaceStep = 1, restrictArea = True, restrictAreaThresh = 0.2):
 	baseX = baseY = 0
 	stepX = int(float(W) / (questionCount * groupCount + groupCount - 1))
-	stepY = int(float(H) / answerCount)
+	stepY = int(np.ceil(float(H) / answerCount))
 	standardS = stepX * stepY
 	answerMap = np.zeros((questionCount * groupCount, answerCount))
 	for anSenter in ansBoxCenter:
@@ -476,7 +476,7 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 	return answerMap
 
 # main function
-def readCard(img, details = [], mode = "noise"):
+def readCard(img, details = [], mode = "noise", showImgs = False):
 	if "area" not in details or not details["area"]:
 		area = None 
 	else:
@@ -510,12 +510,18 @@ def readCard(img, details = [], mode = "noise"):
 	rectImg01[row - 1] = 255
 	rectImg01[:, col - 1] = 255
 	rectImg01[:, 0] = 255
-	# 调试:寻找并在白色底图上画出轮廓
-	# whiteImg = createWhiteImg((col, row))
 	# 找出轮廓
 	contours, hierarchy = findContours(rectImg01, cv2.RETR_TREE)
-	# 调试:画出轮廓
-	# drawContours(whiteImg, contours, (0, 0, 0), 2)
+	if showImgs:
+		# 调试:寻找并在白色底图上画出轮廓
+		whiteImg = createWhiteImg((col, row))
+		whiteImgH, whiteImgW = whiteImg.shape
+		lineStep = int(np.ceil(whiteImgH / float(answerCount)))
+		# 调试:画出轮廓
+		drawContours(whiteImg, contours, (0, 0, 0), 2)
+		# 画线
+		for i in range(answerCount):
+			whiteImg = cv2.line(whiteImg, (0, lineStep * i), (whiteImgW, lineStep * i), (0, 0, 0), 1)  
 	# 得到填涂答案
 	boundingBox = getBoundingRect(contours)
 	# print boundingBox
@@ -527,8 +533,9 @@ def readCard(img, details = [], mode = "noise"):
 		, restrictArea = True, restrictAreaThresh = 0.20)
 	# ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, w, h
 	# 	, restrictArea = True, restrictAreaThresh = 0.18)
-	# 调试:画出轮廓
-	# showImg(rectImg01, whiteImg)	
+	if showImgs:
+		# 调试:画出轮廓
+		showImg(rectImg01, whiteImg)	
 	return ansMap
 
 # if __name__ == "__main__":
