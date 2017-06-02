@@ -238,7 +238,7 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 		showImgs(img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
 
-def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, showImg = False, records = False):
+def circleSplitMobile(originalImg, paperW, paperH, colorImg, resizeScale, scaleThresh = 1.0, showImg = False, records = False):
 	imgSize = getImgSize(originalImg)
 	w, h = imgSize
 	# 按比例缩放
@@ -310,9 +310,14 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, scaleThresh = 1.0, 
 				cv2.circle(imgColor,(i[0],i[1]),i[2],(0,255,0),2)
 				cv2.circle(imgColor,(i[0],i[1]),2,(0,0,255),3)
 		# 映射，切割
-		transPs = np.array([[0, 0], [dw, 0], [dw, dh], [0, dh]], dtype = np.float32)
-		transform = cv2.getPerspectiveTransform(corners, transPs)
-		splitArea = cv2.warpPerspective(src = colorImg, M = transform, dsize =  (dw, dh))
+		# transPs = np.array([[0, 0], [dw, 0], [dw, dh], [0, dh]], dtype = np.float32)
+		# transform = cv2.getPerspectiveTransform(corners, transPs)
+		# splitArea = cv2.warpPerspective(src = colorImg, M = transform, dsize =  (dw, dh))
+		cH, cW, _ = colorImg.shape
+		transPs = np.array([[0, 0], [cW, 0], [cW, cH], [0, cH]], dtype = np.float32)
+		transform = cv2.getPerspectiveTransform(corners / resizeScale, transPs)
+		splitArea = cv2.warpPerspective(src = colorImg, M = transform, dsize =  (cW, cH))
+
 		blockListImg.append(splitArea)
 	if showImg:
 		# showImgs(img, imgColor02, imgColor, *blockListImg)
