@@ -51,7 +51,7 @@ class MultiTypeScoreMarkController(BaseController):
 		# 所有题型都使用划线
 		# 过滤出黑色区域
 		if self.isColor == 1:
-			img = filterBlack(img)
+			img = filterBlack(img, color2 = [180, 255, 110])
 		H, W, _ = img.shape
 		# 主观题，截取打分条
 		if self.quesType == SUBJECT: 
@@ -64,7 +64,7 @@ class MultiTypeScoreMarkController(BaseController):
 			choiceWidth = int(choiceRatio[1] * W) * self.col
 			choiceHeight = int(choiceRatio[2] * W)
 			img = img[0: choiceHeight, leftArea: leftArea + choiceWidth]
-			# cv2.imshow("img", img);cv2.waitKey(10)
+		# cv2.imshow("img", img);cv2.waitKey(10)
 		# 划线
 		H, W, _ = img.shape
 		img = cv2.resize(img, (W * 7, H * 7))
