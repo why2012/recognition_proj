@@ -275,7 +275,7 @@ def circleSplitMobile(originalImg, paperW, paperH, colorImg, resizeScale, scaleT
 	_, imgBg = cv2.threshold(imgBg, 10, 255, cv2.THRESH_BINARY_INV)
 	img = np.uint8(img + imgBg)
 	img = dilation(img, kernel = getKernel((10, 10)))
-	img = erosion(img, iterations = 3)
+	img = erosion(img, iterations = 4)
 	# showImgs(tmpImg, imgBg, img)
 	# return ([], [])
 

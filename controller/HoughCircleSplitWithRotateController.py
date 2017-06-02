@@ -76,8 +76,8 @@ class HoughCircleSplitWithRotateController(BaseController):
 				img = cv2.resize(img, (resizeW, resizeH))
 				(circles, imgList) = circleSplit(img, QRCodeData["paperW"], QRCodeData["paperH"], scaleThresh = 1.0, showImg = False)
 			else:
-				# img = filterBlack(img, [0, 0, 0], [180, 255, 90])
-				img = filterBlack(img)
+				img = filterBlack(img, [0, 0, 0], [180, 255, 100])
+				# img = filterBlack(img)
 				if imgW >= 2000:
 					resizeScale = 0.5		
 				else:
