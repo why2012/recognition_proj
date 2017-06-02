@@ -24,8 +24,8 @@ class HoughCircleSplitWithRotateController(BaseController):
 			img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)# IMREAD_COLOR
 			# 二维码
 			QRCodeData = {"paperW": 1476, "paperH": 1011, "id": -1, "pageNumber": 1}
-			imgH, imgW, _ = img.shape
 			img, qrcode = detectAndGetImage(img, self.imgFeature, "tmp/image/")
+			imgH, imgW, _ = img.shape
 			if img is None or qrcode == -1:
 				self.setResult([], STATUS_SCAN_ERROR)
 				return

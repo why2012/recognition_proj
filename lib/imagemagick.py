@@ -50,6 +50,7 @@ def detectOrientation(img, imgFeature):
 	stepSize = [[H, W], [H, W / 2], [H / 2, W / 2], [H / 2, W]]
 	orientation = -1 # 1, 2, 3, 4 bottomRight, bottomLeft, topLeft, topRight
 	qrcode = -1
+	# cv2.imshow("img " , img)
 	for i in range(4):
 		# cropImg = img[leftTopPoint[i][0]: stepSize[i][0], leftTopPoint[i][1]: stepSize[i][1]]
 		# localH, localW, _ = cropImg.shape
@@ -67,6 +68,8 @@ def detectOrientation(img, imgFeature):
 
 		cropImg = img[leftTopPoint[i][0]: stepSize[i][0], leftTopPoint[i][1]: stepSize[i][1]]
 		qrcode = readQR(cropImg)
+		# print [leftTopPoint[i][0], stepSize[i][0], leftTopPoint[i][1], stepSize[i][1]]
+		# print qrcode, i
 		# cv2.imshow("img %d" % (i), cropImg)
 		# cv2.waitKey(10)
 		if qrcode != -1:
