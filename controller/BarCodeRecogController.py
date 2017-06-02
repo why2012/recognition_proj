@@ -19,8 +19,11 @@ class BarCodeRecogController(BaseController):
 			# 从其他地方获取图片
 			res = url.urlopen(self.barcodeUrl)
 			rawData = res.read()
-		img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)# cv2.IMREAD_GRAYSCALE
-		img = filterBlack(img, [0, 0, 0], [180, 255, 130])
+		img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_GRAYSCALE)
+		# img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)
+		# img = filterBlack(img, [0, 0, 0], [180, 255, 150])
+		# cv2.imshow("img", img)
+		# cv2.waitKey(10)
 		img = Image.fromarray(img)
 		w, h = img.size
 		version = platform.python_version_tuple()
