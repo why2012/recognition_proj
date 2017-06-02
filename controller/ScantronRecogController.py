@@ -7,7 +7,7 @@ import numpy as np
 import urllib2 as url
 
 class ScantronRecogController(BaseController):
-	def execute(self, baseYBias = 0):
+	def execute(self, baseYBias = False):
 		ScantronRecogController.checkParams(self)
 		if not self.cardUrl:
 			img = self.processUpFile("card")
@@ -21,6 +21,10 @@ class ScantronRecogController(BaseController):
 		details["questionCount"] = self.col
 		details["answerCount"] = self.row
 		details["groupCount"] = self.groupCount
+		# 适配手机拍照，学号识别
+		if baseYBias:
+			H, W, _ = img.shape
+			baseYBias = H / self.row * 0.43
 		self.setResult(self.recog(img, details, baseYBias = baseYBias).T.tolist(), STATUS_OK)
 
 	@staticmethod

@@ -11,7 +11,7 @@ class StudentIdRecogController(BarCodeRecogController, ScantronRecogController):
 			BarCodeRecogController.execute(self)
 		if self.idType == 2:
 			self.changeArgName("card", "code")
-			ScantronRecogController.execute(self, baseYBias = 14)
+			ScantronRecogController.execute(self, baseYBias = True)
 			self.determingId(self.getResult()["ans"])
 
 	def determingId(self, idMat):
