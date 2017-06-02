@@ -28,8 +28,10 @@ class HoughCircleSplitWithRotateController(BaseController):
 					img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_COLOR)# IMREAD_COLOR
 				else:
 				# local
-					print self.paperUrl
-					img = cv2.imread(self.paperUrl)
+					if os.path.exists(self.paperUrl):
+						img = cv2.imread(self.paperUrl)
+					else:
+						raise ErrorStatusException("文件不存在: %s" % self.paperUrl, STATUS_PARAM_ERROR)
 			# 二维码
 			QRCodeData = {"paperW": 1476, "paperH": 1011, "id": -1, "pageNumber": 1}
 			img, qrcode = detectAndGetImage(img, self.imgFeature, "tmp/image/")
