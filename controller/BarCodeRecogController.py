@@ -8,6 +8,7 @@ import zbar
 import cv2
 import urllib2 as url
 import platform
+from lib.PreProcessing import *
 
 class BarCodeRecogController(BaseController):
 	def execute(self):
@@ -18,7 +19,8 @@ class BarCodeRecogController(BaseController):
 			# 从其他地方获取图片
 			res = url.urlopen(self.barcodeUrl)
 			rawData = res.read()
-		img = cv2.imdecode(np.fromstring(rawData, np.uint8), cv2.IMREAD_GRAYSCALE)# IMREAD_COLOR
+		img = cv2.imdecode(np.fromstring(rawData, np.uint8), IMREAD_COLOR)# cv2.IMREAD_GRAYSCALE
+		img = filterBlack(img, [0, 0, 0], [180, 255, 130])
 		img = Image.fromarray(img)
 		w, h = img.size
 		version = platform.python_version_tuple()

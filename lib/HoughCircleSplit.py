@@ -103,6 +103,7 @@ def determineBoxRatioMobile(c1, c2, c3, c4, whRatio, thresh = 0.4):
 	# 宽高比判定
 	whRatioBool = (ratio1 >= staRatio - thresh and ratio1 <= staRatio + thresh) and (ratio2 >= staRatio - thresh and ratio2 <= staRatio + thresh) \
 				and (ratio3 >= staRatio - thresh and ratio3 <= staRatio + thresh) and (ratio4 >= staRatio - thresh and ratio4 <= staRatio + thresh)
+	whRatioDiff = np.abs(ratio1 - staRatio) + np.abs(ratio2 - staRatio) + np.abs(ratio3 - staRatio) + np.abs(ratio4 - staRatio)
 	# 对角线相对长度
 	diagLengthRatio = diagLength1 / diagLength2
 	diagLengthRatioBool = (diagLengthRatio >= 1 - thresh) and (diagLengthRatio <= 1 + thresh)
@@ -120,10 +121,10 @@ def determineBoxRatioMobile(c1, c2, c3, c4, whRatio, thresh = 0.4):
 	# 	print "--------------"
 	if whRatioBool and diagLengthRatioBool:
 		# 差异度
-		difference = topLeft[0] + topLeft[1] + radiusVar  + 0.7 * (topRight[0] + topRight[1]) + 5 * np.abs((topRight[1] - topLeft[1])) + np.abs((topRight[0] - bottomLeft[0]))
-		# 宽高比与对角线长度
+		difference = topLeft[0] + topLeft[1] + 0.7 * radiusVar  + 0.7 * (topRight[0] + topRight[1]) + 5 * np.abs((topRight[1] - topLeft[1])) + np.abs((topRight[0] - bottomLeft[0])) + 15 * whRatioDiff# + 5 * np.abs((bottomRight[1] - bottomRight[1]))
+		# # 宽高比与对角线长度
 		# print whRatioBool, diagLengthRatioBool, staRatio
-		# print difference, topLeft[0] + topLeft[1], radiusVar, 0.7 * (topRight[0] + topRight[1]), 5 * np.abs((topRight[1] - topLeft[1])), np.abs((topRight[0] - bottomLeft[0]))
+		# print difference, topLeft[0] + topLeft[1], 0.7 * radiusVar, 0.7 * (topRight[0] + topRight[1]), 5 * np.abs((topRight[1] - topLeft[1])), np.abs((topRight[0] - bottomLeft[0])), 15 * whRatioDiff#, 5 * np.abs((topRight[1] - topLeft[1]))
 		# print topLeft.tolist()
 		# print topRight.tolist()
 		# print bottomRight.tolist()

@@ -36,10 +36,10 @@ class HoughCircleSplitWithRotateController(BaseController):
 			# 二维码
 			QRCodeData = {"paperW": 1476, "paperH": 1011, "id": -1, "pageNumber": 1}
 			img, qrcode = detectAndGetImage(img, self.imgFeature, "tmp/image/")
-			imgH, imgW, _ = img.shape
 			if img is None or qrcode == -1:
-				self.setResult([], STATUS_SCAN_ERROR)
+				raise ErrorStatusException("二维码无法识别", STATUS_SCAN_ERROR)
 				return
+			imgH, imgW, _ = img.shape
 			queryData = urlparse.urlparse(qrcode).query
 			queryData = urlparse.parse_qs(queryData)
 			print queryData
