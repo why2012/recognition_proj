@@ -29,26 +29,30 @@ def detectAndGetImage(img, imgFeature, baseDir):
 
 def readQR(img):
 	# img = filterBlack(img, [0, 0, 0], [180, 255, 110]) # 110
-	img = filterBlackOriginImg(img, [0, 0, 0], [180, 255, 105])
-	# H, W, _ = img.shape
-	# img = cv2.resize(img, (W * 2, H * 2))
-	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	# cv2.imshow("img" + str(np.random.randint(100)), img)
-	# cv2.waitKey(10)
-	img = Image.fromarray(img)
-	w, h = img.size
-	version = platform.python_version_tuple()
-	if int(version[2]) >= 10:
-		zbarImg = zbar.Image(w, h, 'Y800', img.tobytes())
-	else:
-		zbarImg = zbar.Image(w, h, 'Y800', img.tostring())
-	scanner = zbar.ImageScanner()
-	barCodeCount = scanner.scan(zbarImg)
-	resultCode = -1
-	for scanResult in zbarImg:
-		resultCode = scanResult.data
-		break
-	del zbarImg
+	originImg = img
+	for range02 in [[180, 255, 105], [180, 255, 110]]:
+		img = filterBlackOriginImg(originImg, [0, 0, 0], range02)
+		# H, W, _ = img.shape
+		# img = cv2.resize(img, (W * 2, H * 2))
+		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		# cv2.imshow("img" + str(np.random.randint(100)), img)
+		# cv2.waitKey(10)
+		img = Image.fromarray(img)
+		w, h = img.size
+		version = platform.python_version_tuple()
+		if int(version[2]) >= 10:
+			zbarImg = zbar.Image(w, h, 'Y800', img.tobytes())
+		else:
+			zbarImg = zbar.Image(w, h, 'Y800', img.tostring())
+		scanner = zbar.ImageScanner()
+		barCodeCount = scanner.scan(zbarImg)
+		resultCode = -1
+		for scanResult in zbarImg:
+			resultCode = scanResult.data
+			break
+		del zbarImg
+		if resultCode != -1:
+			return resultCode
 	return resultCode
 
 def detectOrientation(img, imgFeature):
