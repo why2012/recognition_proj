@@ -9,6 +9,7 @@ import platform
 import zbar
 import math
 from lib.PreProcessing import *
+import lib.ScantronAnalyzeCV as sc
 
 def detectAndGetImage(img, imgFeature, baseDir):
 	#print "-------"
@@ -35,8 +36,8 @@ def readQR(img):
 		# H, W, _ = img.shape
 		# img = cv2.resize(img, (W * 2, H * 2))
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-		# cv2.imshow("img" + str(np.random.randint(100)), img)
-		# cv2.waitKey(10)
+		cv2.imshow("img" + str(np.random.randint(10000)), img)
+		cv2.waitKey(10)
 		img = Image.fromarray(img)
 		w, h = img.size
 		version = platform.python_version_tuple()
@@ -54,6 +55,67 @@ def readQR(img):
 		if resultCode != -1:
 			return resultCode
 	return resultCode
+
+# 截取二维码
+def readQRSplit(img, thresh1 = 0.5, thresh2 = 0.02, thresh3 = 0.2, resizeScale = 2, showImg = False):
+	originImg = img #filterBlack(img, [0, 0, 0], [180, 255, 110])
+	img = sc.erosion(img, kernel = sc.getKernel((5, 5)))
+	img = filterBlack(img, [0, 0, 0], [180, 255, 105])
+	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+	
+	H, W = img.shape
+	if resizeScale != 1:
+		img = cv2.resize(img, (W * resizeScale, H * resizeScale))
+		originImg = cv2.resize(originImg, (W * resizeScale, H * resizeScale))
+		H, W = img.shape
+	S = H * W
+	contours, hierarchy = sc.findContours(img, cv2.RETR_LIST)
+	filterContours = []
+	for contour in contours:
+		# print cv2.contourArea(contour), S * thresh
+		if cv2.contourArea(contour) < S * thresh1 and cv2.contourArea(contour) > S * thresh2:
+			filterContours.append(contour)
+	# if showImg:
+	# 	fgImg02 = sc.createWhiteImg((W, H))
+	# 	sc.drawContours(fgImg02, contours, (0, 0, 0), 1)
+	# 	cv2.imshow("img" + str(np.random.randint(10000)), img)
+	# 	cv2.waitKey(10)
+
+	boundingBoxes = sc.getBoundingRect(filterContours)
+	if boundingBoxes is None or len(boundingBoxes) == 0:
+		return -1
+	for boundingBox in boundingBoxes:
+		bW, bH = boundingBox[2], boundingBox[3]
+		whRatio = float(bW) / bH
+		if whRatio >= 1 - thresh3 and whRatio <= 1 + thresh3:
+			bX, bY = boundingBox[0], boundingBox[1]
+			fgImg = sc.createWhiteImg((bW, bH))
+			fromPs = np.array([[bX, bY], [bX + bW, bY], [bX + bW, bY + bH], [bX , bY + bH]], dtype = np.float32)
+			transPs = np.array([[0, 0], [bW, 0], [bW, bH], [0, bH]], dtype = np.float32)
+			transform = cv2.getPerspectiveTransform(fromPs, transPs)
+			splitArea = cv2.warpPerspective(src = originImg, M = transform, dsize =  (bW, bH))
+			img = cv2.cvtColor(splitArea, cv2.COLOR_BGR2GRAY)
+
+			if showImg:
+				cv2.imshow("img" + str(np.random.randint(10000)), img)
+				cv2.waitKey(10)
+
+			img = Image.fromarray(img)
+			w, h = img.size
+			version = platform.python_version_tuple()
+			if int(version[2]) >= 10:
+				zbarImg = zbar.Image(w, h, 'Y800', img.tobytes())
+			else:
+				zbarImg = zbar.Image(w, h, 'Y800', img.tostring())
+			scanner = zbar.ImageScanner()
+			barCodeCount = scanner.scan(zbarImg)
+			resultCode = -1
+			for scanResult in zbarImg:
+				resultCode = scanResult.data
+				break
+			del zbarImg
+			return resultCode
+	return -1
 
 def detectOrientation(img, imgFeature):
 	H, W, _ = img.shape
@@ -78,7 +140,8 @@ def detectOrientation(img, imgFeature):
 		# 	break
 
 		cropImg = img[leftTopPoint[i][0]: stepSize[i][0], leftTopPoint[i][1]: stepSize[i][1]]
-		qrcode = readQR(cropImg)
+		# qrcode = readQR(cropImg)
+		qrcode = readQRSplit(cropImg)
 		# print [leftTopPoint[i][0], stepSize[i][0], leftTopPoint[i][1], stepSize[i][1]]
 		# print qrcode, i
 		# cv2.imshow("img %d" % (i), cropImg)
