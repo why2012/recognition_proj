@@ -28,9 +28,12 @@ def detectAndGetImage(img, imgFeature, baseDir):
 	return img, qrcode
 
 def readQR(img):
-	img = filterBlack(img, [0, 0, 0], [180, 255, 130])
+	# img = filterBlack(img, [0, 0, 0], [180, 255, 110]) # 110
+	img = filterBlackOriginImg(img, [0, 0, 0], [180, 255, 105])
+	# H, W, _ = img.shape
+	# img = cv2.resize(img, (W * 2, H * 2))
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	# cv2.imshow("img", img)
+	# cv2.imshow("img" + str(np.random.randint(100)), img)
 	# cv2.waitKey(10)
 	img = Image.fromarray(img)
 	w, h = img.size

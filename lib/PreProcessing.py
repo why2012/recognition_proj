@@ -24,6 +24,15 @@ def filterBlack(img, color1 = [0, 0, 0], color2 = [180, 255, 90]):
     _, img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY_INV)
     return img
 
+def filterBlackOriginImg(img, color1 = [0, 0, 0], color2 = [180, 255, 90], thresh1 = 10, thresh2 = 255):
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    lower_black = np.array(color1)
+    upper_black = np.array(color2)
+    mask = cv2.inRange(hsv, lower_black, upper_black)
+    img = cv2.bitwise_and(img, img, mask = mask)
+    img[img[:, :, 0: 3] == [0, 0, 0]] = 255
+    return img
+
 def filterBlue(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     lower_black = np.array([100, 50, 50])
