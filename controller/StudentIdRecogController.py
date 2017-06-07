@@ -11,7 +11,11 @@ class StudentIdRecogController(BarCodeRecogController, ScantronRecogController):
 			BarCodeRecogController.execute(self)
 		if self.idType == 2:
 			self.changeArgName("card", "code")
-			ScantronRecogController.execute(self, baseYBias = True)
+			if self.isMobile == 1:
+				baseYBias = True
+			else:
+				baseYBias = False
+			ScantronRecogController.execute(self, baseYBias = baseYBias)
 			self.determingId(self.getResult()["ans"])
 
 	def determingId(self, idMat):
@@ -31,6 +35,7 @@ class StudentIdRecogController(BarCodeRecogController, ScantronRecogController):
 	@staticmethod
 	def checkParam02(self):
 		idType = self.getIntArg("type", None)
+		self.isMobile = self.getIntArg("isMobile", -1)
 		if idType is None:
 			raise ErrorStatusException("type must be number (1条码|2填涂)", STATUS_PARAM_ERROR)
 		if idType != 1 and idType != 2:
