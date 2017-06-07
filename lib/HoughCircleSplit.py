@@ -281,6 +281,55 @@ def getCircles(contours):
 		topCircles.append([centralX, centralY, R])
 	return np.array(topCircles)
 
+def circleSplitPlus(originalImg, paperW, paperH, colorImg, resizeScale, scaleThresh = 1.0, showImg = False):
+	imgSize = getImgSize(originalImg)
+	w, h = imgSize
+	# 目标区域宽高
+	dw, dh = paperW, paperH
+	if showImg:
+		imgColor = originalImg.copy()
+		imgColor02 = originalImg.copy()
+	img = grayImg(originalImg)
+	contours_circle = removeLargeBlackArea(img, showImg = showImg)
+	circles = getCircles(contours_circle)
+	if circles is None or len(circles) == 0:
+		return ([], [])
+	if len(circles) >= 10:
+		# 只取半径大于平均值的圆
+		avgRadius = np.average(circles[:, 2])
+		# avgRadius = 0
+		circles = np.array([circles[circles[:, 2] >= avgRadius]])[0]
+	# print circles
+	# 切割结果
+	splitArea = np.array([])
+	# 确定四个边角圆
+	corners, correctCircles, _ = determingCorrectCircles(circles, float(paperW) / paperH, True)
+	corners = np.array(corners, dtype = np.float32)
+	# 画出过滤前的圆
+	if showImg and circles.any():
+		# 调试：画圆
+		circles = np.uint16(np.around(circles))
+		for i in circles:
+			cv2.circle(imgColor02,(i[0],i[1]),i[2],(0,255,0),2)
+			cv2.circle(imgColor02,(i[0],i[1]),2,(0,0,255),3)
+	blockListImg = []
+	if correctCircles:
+		if showImg:
+			# 调试：画圆
+			correctCirclesUint = np.uint16(np.around(correctCircles))
+			for i in correctCirclesUint:
+				cv2.circle(imgColor,(i[0],i[1]),i[2],(0,255,0),2)
+				cv2.circle(imgColor,(i[0],i[1]),2,(0,0,255),3)
+		cH, cW, _ = colorImg.shape
+		transPs = np.array([[0, 0], [cW, 0], [cW, cH], [0, cH]], dtype = np.float32)
+		transform = cv2.getPerspectiveTransform(corners / resizeScale, transPs)
+		splitArea = cv2.warpPerspective(src = colorImg, M = transform, dsize =  (cW, cH))
+
+		blockListImg.append(splitArea)
+	if showImg:
+		showImgs(colorImg, img, imgColor02, imgColor)
+	return (correctCircles, blockListImg)
+
 def circleSplitMobilePlus(originalImg, paperW, paperH, colorImg, resizeScale, scaleThresh = 1.0, showImg = False, records = False):
 	imgSize = getImgSize(originalImg)
 	w, h = imgSize

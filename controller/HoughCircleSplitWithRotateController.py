@@ -40,8 +40,17 @@ class HoughCircleSplitWithRotateController(BaseController):
 				raise ErrorStatusException("二维码无法识别", STATUS_SCAN_ERROR)
 				return
 			imgH, imgW, _ = img.shape
-			queryData = urlparse.urlparse(qrcode).query
-			queryData = urlparse.parse_qs(queryData)
+
+			# queryData = urlparse.urlparse(qrcode).query
+			# queryData = urlparse.parse_qs(queryData)
+
+			print qrcode
+			qrcode = qrcode.split("?")[1]
+			qrcode = qrcode.split("&")
+			queryData = {}
+			queryData['paperType'] = qrcode[0]
+			queryData['pageNumber'] = qrcode[1]
+			queryData['id'] = qrcode[2]
 			print queryData
 			# # ---test---
 			# queryData['paperType'] = ['a3']

@@ -33,13 +33,15 @@ class HoughCircleSplitController(BaseController):
 		if self.isMobile == -1:
 			img = filterBlack(img)
 			if imgW >= 2000:
-				resizeW, resizeH = (int(imgW * 0.5), int(imgH * 0.5))
+				resizeScale = 0.5		
 			else:
-				resizeW, resizeH = (int(imgW * 0.8), int(imgH * 0.8))
+				resizeScale = 0.8
+			resizeW, resizeH = (int(imgW * resizeScale), int(imgH * resizeScale))
 			# 缩放至固定尺寸，方便调参
 			# resizeW, resizeH = (int(self.paperW / 3.36), int(self.paperH / 3.46))# (1476, 1011) # 1300, 2000
 			img = cv2.resize(img, (resizeW, resizeH))
-			(circles, imgList) = circleSplit(img, self.paperW, self.paperH, scaleThresh = 1.0, showImg = False)
+			# (circles, imgList) = circleSplit(img, self.paperW, self.paperH, scaleThresh = 1.0, showImg = False)
+			(circles, imgList) = circleSplitPlus(img, self.paperW, self.paperH, colorImg = originImg, resizeScale = resizeScale, scaleThresh = 1.0, showImg = False)
 		else:
 			# img = filterBlack(img, [0, 0, 0], [180, 255, 90])
 			img = filterBlack(img)
