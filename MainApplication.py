@@ -1,4 +1,5 @@
 # coding: utf-8
+import tornado.httpserver as httpserver
 import tornado.ioloop as ioloop
 import tornado.web as web 
 import logging.config
@@ -16,5 +17,11 @@ class MakeApp(object):
 
 if __name__ == "__main__":
 	app = MakeApp().make()
-	app.listen(20001)
-	ioloop.IOLoop.current().start()
+	if Setting.Conf["debug"]:
+		app.listen(20001)
+		ioloop.IOLoop.current().start()
+	else:
+		httpServer = httpserver.HTTPServer(app)
+		httpServer.bind(20001)
+		httpServer.start(num_processes = 0) 
+		ioloop.IOLoop.current().start()
