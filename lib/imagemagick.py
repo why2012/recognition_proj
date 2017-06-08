@@ -57,9 +57,9 @@ def readQR(img):
 	return resultCode
 
 # 截取二维码
-def readQRSplit(img, thresh1 = 0.5, thresh2 = 0.02, thresh3 = 0.2, resizeScale = 2, showImg = True):
+def readQRSplit(img, thresh1 = 0.5, thresh2 = 0.02, thresh3 = 0.2, resizeScale = 2, showImg = False):
 	originImg = img #filterBlack(img, [0, 0, 0], [180, 255, 110])
-	img = sc.erosion(img, kernel = sc.getKernel((10, 10)))
+	img = sc.erosion(img, kernel = sc.getKernel((15, 15)))
 	img = filterBlack(img, [0, 0, 0], [180, 255, 105])
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	
@@ -75,11 +75,11 @@ def readQRSplit(img, thresh1 = 0.5, thresh2 = 0.02, thresh3 = 0.2, resizeScale =
 		# print cv2.contourArea(contour), S * thresh
 		if cv2.contourArea(contour) < S * thresh1 and cv2.contourArea(contour) > S * thresh2:
 			filterContours.append(contour)
-	# if showImg:
-	# 	fgImg02 = sc.createWhiteImg((W, H))
-	# 	sc.drawContours(fgImg02, contours, (0, 0, 0), 1)
-	# 	cv2.imshow("img" + str(np.random.randint(10000)), img)
-	# 	cv2.waitKey(10)
+	if showImg:
+		fgImg02 = sc.createWhiteImg((W, H))
+		sc.drawContours(fgImg02, contours, (0, 0, 0), 1)
+		cv2.imshow("img" + str(np.random.randint(10000)), img)
+		cv2.waitKey(10)
 
 	boundingBoxes = sc.getBoundingRect(filterContours)
 	if boundingBoxes is None or len(boundingBoxes) == 0:
