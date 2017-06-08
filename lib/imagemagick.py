@@ -57,9 +57,9 @@ def readQR(img):
 	return resultCode
 
 # 截取二维码
-def readQRSplit(img, thresh1 = 0.5, thresh2 = 0.02, thresh3 = 0.2, resizeScale = 2, showImg = False):
+def readQRSplit(img, thresh1 = 0.5, thresh2 = 0.02, thresh3 = 0.2, resizeScale = 2, showImg = True):
 	originImg = img #filterBlack(img, [0, 0, 0], [180, 255, 110])
-	img = sc.erosion(img, kernel = sc.getKernel((5, 5)))
+	img = sc.erosion(img, kernel = sc.getKernel((10, 10)))
 	img = filterBlack(img, [0, 0, 0], [180, 255, 105])
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	
