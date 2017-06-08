@@ -345,7 +345,7 @@ def circleSplitMobilePlus(originalImg, paperW, paperH, colorImg, resizeScale, sc
 		return ([], [])
 	if len(circles) >= 10:
 		# 只取半径大于平均值的圆
-		avgRadius = np.average(circles[:, 2])
+		avgRadius = np.average(circles[:, 2]) * 0.4
 		# avgRadius = 0
 		circles = np.array([circles[circles[:, 2] >= avgRadius]])[0]
 	# print circles
