@@ -105,8 +105,11 @@ class MultiTypeScoreMarkController(BaseController):
 				if SCORE_BAR[scoreIndex] == -1:
 					return self.totalScore
 				else:
-					return SCORE_BAR[scoreIndex]
-			elif len(scoreArray) == 2:
+					singleScore = SCORE_BAR[scoreIndex]
+					if singleScore > self.totalScore:
+						return -1
+					return singleScore
+			elif len(scoreArray) == 2 or len(scoreArray) == 3:
 				scoreIndex = scoreArray[0]
 				plusScoreIndex = scoreArray[1]
 				# 异常判定
@@ -117,6 +120,11 @@ class MultiTypeScoreMarkController(BaseController):
 				elif (scoreIndex in SCORE_BAR_AREA1 and plusScoreIndex in SCORE_BAR_AREA1):
 					return -1
 				totalScore = SCORE_BAR[scoreIndex] + SCORE_BAR[plusScoreIndex]
+				if len(scoreArray) == 3:
+					plusplusScoreIndex = scoreArray[2]
+					if plusplusScoreIndex != SCORE_BAR_AREA3_INDEX:
+						return -1
+					totalScore += SCORE_BAR[plusplusScoreIndex]
 				if totalScore > self.totalScore:
 					return -1
 				return totalScore
