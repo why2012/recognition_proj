@@ -160,9 +160,10 @@ class MultiTypeScoreMarkController(BaseController):
 				col = 2
 			if np.max(correctAns) >= col or np.min(correctAns) < 0:
 				 raise ErrorStatusException("item of correctAns must be a correct", STATUS_PARAM_ERROR)
-			self.paperType = self.getStrArg("paperType", "a3").lower()
-			if self.paperType not in MARK_CHOICE_RATIO:
-				raise ErrorStatusException("paperType must be " + str(MARK_CHOICE_RATIO.keys()), STATUS_PARAM_ERROR)
+			self.paperType = "a3"
+			# self.paperType = self.getStrArg("paperType", "a3").lower()
+			# if self.paperType not in MARK_CHOICE_RATIO:
+			# 	raise ErrorStatusException("paperType must be " + str(MARK_CHOICE_RATIO.keys()), STATUS_PARAM_ERROR)
 		elif quesType == SUBJECT:
 			col = len(SCORE_BAR)
 		self.MAX_CHOICE_NUM = self.getIntArg("MAX_CHOICE_NUM", MAX_CHOICE_NUM)
