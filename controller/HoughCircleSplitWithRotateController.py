@@ -37,6 +37,9 @@ class HoughCircleSplitWithRotateController(BaseController):
 			QRCodeData = {"paperW": 1476, "paperH": 1011, "id": -1, "pageNumber": 1}
 			img, qrcode = detectAndGetImage(img, self.imgFeature, "tmp/image/")
 			if img is None or qrcode == -1:
+				if self.writeJson is not None:
+					with open(self.writeJson, "w") as jsonfile:
+						jsonfile.write(json.dumps({"status": STATUS_SCAN_ERROR, "ans": [], "msg": "二维码无法识别"}, ensure_ascii=False));
 				raise ErrorStatusException("二维码无法识别", STATUS_SCAN_ERROR)
 				return
 			imgH, imgW, _ = img.shape
@@ -100,8 +103,8 @@ class HoughCircleSplitWithRotateController(BaseController):
 				# cv2.imwrite("resources/tmp/tmp.png", imgList[0])
 				retval, buf = cv2.imencode(".jpg", imgList[0])
 				if retval:
-					with open("tmp/data/%s.qrdata" % self.qrid, "w") as qrfile:
-						qrfile.write(json.dumps(queryData, ensure_ascii=False));
+					# with open("tmp/data/%s.qrdata" % self.qrid, "w") as qrfile:
+					# 	qrfile.write(json.dumps(queryData, ensure_ascii=False));
 					if int(self.version[2]) >= 10:
 						rawData = buf.tobytes()
 					else:
@@ -112,6 +115,9 @@ class HoughCircleSplitWithRotateController(BaseController):
 				else:
 					self.setResult([], STATUS_ENCODE_ERROR)
 			else:
+				if self.writeJson is not None:
+					with open(self.writeJson, "w") as jsonfile:
+						jsonfile.write(json.dumps({"status": STATUS_SCAN_ERROR, "ans": [], "msg": "识别错误"}, ensure_ascii=False));
 				self.setResult([], STATUS_SCAN_ERROR)
 		# 返回二维码数据
 		if self.opType == 1:
@@ -136,6 +142,7 @@ class HoughCircleSplitWithRotateController(BaseController):
 	@staticmethod
 	def checkParams(self):
 		opType = self.getIntArg("opType")
+		self.writeJson = self.getStrArg("writeJson", None)
 		if opType < 0:
 			opType = 0 # 返回图片
 		if opType != 0 and opType !=1:
