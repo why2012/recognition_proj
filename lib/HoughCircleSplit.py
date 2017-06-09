@@ -240,7 +240,7 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 		showImgs(img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
 
-def removeLargeBlackArea(img, thresh = 0.0007, showImg = False, dilationKS = 9):
+def removeLargeBlackArea(img, thresh = 0.0007, showImg = False, dilationKS = 7):
 	originalImg = img
 	_, img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY_INV)
 	H, W = img.shape
@@ -278,6 +278,7 @@ def getCircles(contours, thresh01 = 0.8):
 		cS = contours[cSI[1]]
 		x, y, w, h = cv2.boundingRect(cS)
 		whRatio = float(w) / h
+		# print whRatio, 1 - thresh01, 1 + thresh01
 		if whRatio >= 1 - thresh01 and whRatio <= 1 + thresh01:
 			centralX, centralY, R = np.ceil((x * 2 + w) / 2.0), np.ceil((y * 2 + h) / 2.0), (w + h) / 4
 			topCircles.append([centralX, centralY, R])
