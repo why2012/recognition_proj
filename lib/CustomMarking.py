@@ -99,8 +99,11 @@ def lineMarking(img, drawImg = False, isColor = -1):
 	# img = dilation(img, getKernel((3, 3)))
 	# 黑白
 	if isColor == -1:
-		lines = cv2.HoughLines(img, 1, np.pi / 360, 50)
+		lines = cv2.HoughLines(img, 1, np.pi / 360, 90)
+	elif isColor == 2:
+		lines = cv2.HoughLines(img, 1, np.pi / 360, 90)
 	else:
+		# isColor == 1
 		lines = cv2.HoughLines(img, 1, np.pi / 360, 30)
 	lines = np.array(lines)
 	if not lines.any():

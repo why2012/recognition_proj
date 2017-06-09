@@ -240,7 +240,7 @@ def circleSplit(originalImg, paperW, paperH, scaleThresh = 1.0, showImg = False)
 		showImgs(img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
 
-def removeLargeBlackArea(img, thresh = 0.0007, showImg = False):
+def removeLargeBlackArea(img, thresh = 0.0007, showImg = False, dilationKS = 9):
 	originalImg = img
 	_, img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY_INV)
 	H, W = img.shape
@@ -255,7 +255,7 @@ def removeLargeBlackArea(img, thresh = 0.0007, showImg = False):
 	sc.drawContours(fgImg, filterContours, (0, 0, 0), -1)
 	_, fgImg = cv2.threshold(fgImg, 10, 255, cv2.THRESH_BINARY_INV)
 	img = np.uint8(fgImg + originalImg)
-	img = dilation(img, kernel = getKernel((9, 9)))
+	img = dilation(img, kernel = getKernel((dilationKS, dilationKS)))
 	_, img = cv2.threshold(img, 10, 255, cv2.THRESH_BINARY_INV)
 	contours_circle, hierarchy_circle = sc.findContours(img, cv2.RETR_LIST)
 	if showImg:
@@ -290,7 +290,7 @@ def circleSplitPlus(originalImg, paperW, paperH, colorImg, resizeScale, scaleThr
 		imgColor = originalImg.copy()
 		imgColor02 = originalImg.copy()
 	img = grayImg(originalImg)
-	contours_circle = removeLargeBlackArea(img, showImg = showImg)
+	contours_circle = removeLargeBlackArea(img, showImg = showImg, dilationKS = 13)
 	circles = getCircles(contours_circle)
 	if circles is None or len(circles) == 0:
 		return ([], [])
