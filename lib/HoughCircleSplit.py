@@ -266,7 +266,7 @@ def removeLargeBlackArea(img, thresh = 0.0007, showImg = False, dilationKS = 9):
 		cv2.waitKey(10)
 	return contours_circle
 
-def getCircles(contours):
+def getCircles(contours, thresh01 = 0.8):
 	topCircles = []
 	contourS = []
 	for i, contour in enumerate(contours):
@@ -277,8 +277,10 @@ def getCircles(contours):
 	for cSI in contourS:
 		cS = contours[cSI[1]]
 		x, y, w, h = cv2.boundingRect(cS)
-		centralX, centralY, R = np.ceil((x * 2 + w) / 2.0), np.ceil((y * 2 + h) / 2.0), (w + h) / 4
-		topCircles.append([centralX, centralY, R])
+		whRatio = float(w) / h
+		if whRatio >= 1 - thresh01 and whRatio <= 1 + thresh01:
+			centralX, centralY, R = np.ceil((x * 2 + w) / 2.0), np.ceil((y * 2 + h) / 2.0), (w + h) / 4
+			topCircles.append([centralX, centralY, R])
 	return np.array(topCircles)
 
 def circleSplitPlus(originalImg, paperW, paperH, colorImg, resizeScale, scaleThresh = 1.0, showImg = False):
