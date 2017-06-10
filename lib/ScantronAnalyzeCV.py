@@ -403,7 +403,7 @@ def findAnswerBoxCenter(rectangles, hierarchy):
 		if item[3] != -1:
 			x1, y1, w, h = rectangles[index]
 			# centerX， centerY，S
-			ansBoxCenter.append(((x1 + x1 + w) / 2, (y1 + y1 + h) / 2, w * h))
+			ansBoxCenter.append(((x1 + x1 + w) / 2, (y1 + y1 + h) / 2, w * h, w, h))
 		elif rectangles[index][2] != -1:
 			topBoundingBox = rectangles[index]
 	return ansBoxCenter, topBoundingBox
@@ -453,10 +453,11 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 	standardS = stepX * stepY
 	answerMap = np.zeros((questionCount * groupCount, answerCount))
 	for anSenter in ansBoxCenter:
-		ansX, ansY, S = anSenter
+		# 顶部会出现细长方块
+		ansX, ansY, S, sw, sh = anSenter
 		# 填涂面积至少为判定方格面积的20%
-		# print S, standardS
-		if restrictArea and S <= restrictAreaThresh * standardS:
+		if restrictArea and (S <= restrictAreaThresh * standardS or float(sw) / sh > 5):
+			# print anSenter, standardS * restrictAreaThresh
 			continue
 		ansIndex = int((ansY - baseY) / stepY)
 		quesIndePre = int((ansX - baseX) / stepX)
@@ -475,6 +476,7 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 			answerMap[quesIndex][answerCount - 1] = 1
 		elif quesIndex == questionCount:
 			answerMap[questionCount - 1][ansIndex] = 1
+		# print S, standardS * restrictAreaThresh, quesIndex, ansIndex
 	return answerMap
 
 # main function
@@ -495,9 +497,9 @@ def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = False)
 	if mode == "noise":
 		# 手机
 		if baseYBias != 0:
-			img = cv2.blur(img, (3, 3))
+			img = cv2.blur(img, (4, 4))
 		else:
-			img = cv2.blur(img, (5, 5))
+			img = cv2.blur(img, (4, 4))
 	# 腐蚀, 实际效果为涂抹填涂区域
 	# img = erosion(img)
 	# 膨胀， 实际效果为缩小填涂区域
@@ -540,7 +542,7 @@ def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = False)
 			, restrictArea = True, restrictAreaThresh = 0.20, baseYBias = baseYBias)
 	else:
 		ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
-		, restrictArea = True, restrictAreaThresh = 0.30, baseYBias = baseYBias)
+		, restrictArea = True, restrictAreaThresh = 0.20, baseYBias = baseYBias)
 	# ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, w, h
 	# 	, restrictArea = True, restrictAreaThresh = 0.18)
 	if showImgs:
