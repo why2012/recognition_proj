@@ -24,7 +24,7 @@ class ScantronRecogController(BaseController):
 		# 适配手机拍照，学号识别
 		if baseYBias:
 			H, W, _ = img.shape
-			baseYBias = H / self.row * 0.43
+			baseYBias = H / self.row * 0.35
 		else:
 			baseYBias = 0
 		self.setResult(self.recog(img, details, baseYBias = baseYBias).T.tolist(), STATUS_OK)

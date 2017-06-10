@@ -480,7 +480,7 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 	return answerMap
 
 # main function
-def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = False):
+def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = True):
 	if "area" not in details or not details["area"]:
 		area = None 
 	else:
@@ -497,9 +497,10 @@ def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = False)
 	if mode == "noise":
 		# 手机
 		if baseYBias != 0:
-			img = cv2.blur(img, (4, 4))
+			img = cv2.blur(img, (3, 3))
 		else:
 			img = cv2.blur(img, (4, 4))
+	# print baseYBias
 	# 腐蚀, 实际效果为涂抹填涂区域
 	# img = erosion(img)
 	# 膨胀， 实际效果为缩小填涂区域
