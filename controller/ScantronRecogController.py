@@ -25,6 +25,8 @@ class ScantronRecogController(BaseController):
 		if baseYBias:
 			H, W, _ = img.shape
 			baseYBias = H / self.row * 0.43
+		else:
+			baseYBias = 0
 		self.setResult(self.recog(img, details, baseYBias = baseYBias).T.tolist(), STATUS_OK)
 
 	@staticmethod

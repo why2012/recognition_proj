@@ -455,6 +455,7 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 	for anSenter in ansBoxCenter:
 		ansX, ansY, S = anSenter
 		# 填涂面积至少为判定方格面积的20%
+		# print S, standardS
 		if restrictArea and S <= restrictAreaThresh * standardS:
 			continue
 		ansIndex = int((ansY - baseY) / stepY)
@@ -492,7 +493,11 @@ def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = False)
 	img = binaryInv(img)
 	# 低通滤波
 	if mode == "noise":
-		img = cv2.blur(img, (3, 3))
+		# 手机
+		if baseYBias != 0:
+			img = cv2.blur(img, (3, 3))
+		else:
+			img = cv2.blur(img, (5, 5))
 	# 腐蚀, 实际效果为涂抹填涂区域
 	# img = erosion(img)
 	# 膨胀， 实际效果为缩小填涂区域
@@ -530,8 +535,12 @@ def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = False)
 	# 单个题组
 	# ansMap = determineAnswer(ansBoxCenter, 5, 4, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1])
 	# 四个题组
-	ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
-		, restrictArea = True, restrictAreaThresh = 0.20, baseYBias = baseYBias)
+	if baseYBias != 0:
+		ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
+			, restrictArea = True, restrictAreaThresh = 0.20, baseYBias = baseYBias)
+	else:
+		ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, topBoundingBox[2] - topBoundingBox[0], topBoundingBox[3] - topBoundingBox[1]
+		, restrictArea = True, restrictAreaThresh = 0.30, baseYBias = baseYBias)
 	# ansMap = determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, w, h
 	# 	, restrictArea = True, restrictAreaThresh = 0.18)
 	if showImgs:
