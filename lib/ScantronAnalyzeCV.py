@@ -480,7 +480,7 @@ def determineAnswerBar(ansBoxCenter, questionCount, answerCount, groupCount, W, 
 	return answerMap
 
 # main function
-def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = True):
+def readCard(img, details = [], mode = "noise", baseYBias = 0, showImgs = False):
 	if "area" not in details or not details["area"]:
 		area = None 
 	else:
