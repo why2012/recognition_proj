@@ -32,6 +32,9 @@ class HoughCircleSplitWithRotateController(BaseController):
 					if os.path.exists(self.paperUrl):
 						img = cv2.imread(self.paperUrl)
 					else:
+						if self.writeJson is not None:
+							with open(self.writeJson, "w") as jsonfile:
+								jsonfile.write(json.dumps({"status": STATUS_SCAN_ERROR, "ans": [], "msg": "文件不存在: %s" % self.paperUrl}, ensure_ascii=False));
 						raise ErrorStatusException("文件不存在: %s" % self.paperUrl, STATUS_PARAM_ERROR)
 			# 二维码
 			QRCodeData = {"paperW": 1476, "paperH": 1011, "id": -1, "pageNumber": 1}
