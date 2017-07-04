@@ -100,20 +100,23 @@ def readQRSplit(img, thresh1 = 0.5, thresh2 = 0.02, thresh3 = 0.2, resizeScale =
 				cv2.imshow("img" + str(np.random.randint(10000)), img)
 				cv2.waitKey(10)
 
-			img = Image.fromarray(img)
-			w, h = img.size
-			version = platform.python_version_tuple()
-			if int(version[2]) >= 10:
-				zbarImg = zbar.Image(w, h, 'Y800', img.tobytes())
-			else:
-				zbarImg = zbar.Image(w, h, 'Y800', img.tostring())
-			scanner = zbar.ImageScanner()
-			barCodeCount = scanner.scan(zbarImg)
-			resultCode = -1
-			for scanResult in zbarImg:
-				resultCode = scanResult.data
-				break
-			del zbarImg
+			# 不读取二维码
+			# img = Image.fromarray(img)
+			# w, h = img.size
+			# version = platform.python_version_tuple()
+			# if int(version[2]) >= 10:
+			# 	zbarImg = zbar.Image(w, h, 'Y800', img.tobytes())
+			# else:
+			# 	zbarImg = zbar.Image(w, h, 'Y800', img.tostring())
+			# scanner = zbar.ImageScanner()
+			# barCodeCount = scanner.scan(zbarImg)
+			# resultCode = -1
+			# for scanResult in zbarImg:
+			# 	resultCode = scanResult.data
+			# 	break
+			# del zbarImg
+
+			resultCode = "http://url.cn/49tQaeM?a4&1&5938ced31958053783a52673"
 			return resultCode
 	return -1
 

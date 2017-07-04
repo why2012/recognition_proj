@@ -57,6 +57,8 @@ class HoughCircleSplitWithRotateController(BaseController):
 			queryData['paperType'] = qrcode[0]
 			queryData['pageNumber'] = qrcode[1]
 			queryData['id'] = qrcode[2]
+			# 不读取二维码
+			queryData['paperType'] = self.paperType
 			print queryData
 			# # ---test---
 			# queryData['paperType'] = ['a3']
@@ -167,5 +169,10 @@ class HoughCircleSplitWithRotateController(BaseController):
 		if qrid is None or qrid == "":
 			raise ErrorStatusException("qrid must not be null, its a unique identification.", STATUS_PARAM_ERROR)
 		self.qrid = qrid
+
+		paperType = self.getStrArg("paperType")
+		if paperType is None or paperType == "":
+			raise ErrorStatusException("paperType must not be null.", STATUS_PARAM_ERROR)
+		self.paperType = paperType
 
 
