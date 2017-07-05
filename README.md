@@ -331,6 +331,7 @@ octaveLayers // 默认1
 ```
 opType 0: 返回图片, 1: 返回二维码
 qrid 二维码查询id, 自定义，必须保证唯一
+paperType 纸张类型 a4, a3
 [paper]  图片或图片绝对url; opType 0
 [isMobile] 是否是照片, 手机拍照填1, 否则影响精度; opType 0
 ```

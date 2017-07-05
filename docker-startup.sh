@@ -6,4 +6,4 @@ git status
 git commit -a
 git push
 sed -i '' 's/"debug": False/"debug": True/g' Setting.py
-#ssh -t suntopo@120.77.80.118 "bash -c 'cd Recog/recog/ && git pull && sudo docker restart pycv0.3'"
+ssh -t suntopo@120.77.80.118 "bash -c 'cd Recog/recog/ && git pull && sudo docker restart pycv0.3'"
