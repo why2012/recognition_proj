@@ -1,0 +1,150 @@
+<head>
+	<title>识别训练平台</title>
+	<script type="text/javascript" src="jquery-3.2.1.min.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			//获取BucketList
+			$.get("/panel/bucketlist", function(data) {
+				console.log(data)
+				if (data != undefined && data.status == 0) {
+					selectInner = ""
+					for (var item of data.ans) {
+						selectInner += "<option value =" + item + ">" + item + "</option>"
+					}
+					console.log(selectInner)
+					$("#bucketname-train").html(selectInner)
+					$("#bucketname-test").html(selectInner)
+				} else {
+					alert("bucketlist 接口错误")
+				}
+			})
+			nextImgId = ""
+			nextImgPath = ""
+			$("#next").click(function() {
+				console.log("Next")
+				basedir = $("#basedir").val().trim()
+				bucket = $("#bucket").val().trim()
+				if (basedir == "" || bucket == "") {
+					alert("数据集地址和数据集名称不能为空")
+				} else {
+					$.get("/panel/nextimg/" + basedir + "/" + bucket, function(data) {
+						console.log(data)
+						if (data != undefined && data.status == 0) {
+							nextImgId = data.ans.imgid
+							nextImgPath = data.ans.imgpath
+							$("#img").attr("src", "/panel/showimg/" + nextImgPath + "/" + nextImgId)
+						} else {
+							alert("数据集标注完成，或是出现未知错误")
+						}
+					})
+				}
+			})
+
+			$("#submit").click(function() {
+				console.log("SubmitAnswer")
+				choice = $("#choice").val().trim()
+				if (choice == "") {
+					alert("选项不能为空，填-1,-1,-1,-1跳过此张图片")
+				} else {
+					console.log("SubmitAnswer, id: " + nextImgId)
+					if (nextImgId == "") {
+						alert("数据错误, 先点击NextImage获取图片")
+					} else {
+						$.get("/panel/submitsample/" + nextImgId + "/" + choice, function(data) {
+							if (data != undefined && data.status == 0) {
+								console.log("OK")
+							} else {
+								alert("发生错误, " + data.msg)
+							}
+						})
+					}
+				}
+			})
+
+			$("#train").click(function() {
+				console.log("Train.")
+				bucketName = $("#bucketname-train").val()
+				console.log(bucketName)
+				$.get("/panel/trainmodel/" + bucketName, function(data) {
+					console.log(data)
+					alert(data.status + " | " + data.msg + " | " + data.ans)
+				})
+			})
+
+			$("#test").click(function() {
+				console.log("Test.")
+				bucketName = $("#bucketname-test").val()
+				console.log(bucketName)
+				$.get("/panel/testmodel/" + bucketName, function(data) {
+					console.log(data)
+					alert(data.status + " | " + data.msg + " | " + data.ans)
+				})
+			})
+
+			$("#apply").click(function() {
+				console.log("Apply.")
+				$.get("/panel/applymodel", function(data) {
+					console.log(data)
+					alert(data.status + " | " + data.msg + " | " + data.ans)
+				})
+			})
+
+			$("#switch").click(function() {
+				console.log("Switch.")
+				option = $("#type").val()
+				console.log(option)
+				$.get("/panel/switchtraditional/" + option, function(data) {
+					console.log(data)
+					alert(data.status + " | " + data.msg + " | " + data.ans)
+				})
+			})
+		})
+	</script>
+</head>
+<body>
+<div>
+	<div style="margin-bottom: 20px">
+		<h4 style="display:inline">数据集地址</h4><input type="text" id="basedir"/>
+		<h4 style="display:inline">数据集名称</h4><input type="text" id="bucket"/>
+	</div>
+
+	<div style="margin-bottom: 10px">
+		<img id="img" src=""/>
+		<input type="text" id="choice"/><h5 style="display:inline">输入四个编号，英文逗号分隔,如 1,2,3,4,顺序为左上，右上，右下，左下！</h5>
+		<input type="button" id="submit" value="SubmitAnswer" />
+		<input type="button" id="next" value="NextImage" />
+	</div>
+
+	<div style="margin-bottom: 10px">
+		<h4 style="display:inline">数据集名称</h4>
+		<select id="bucketname-train">
+  			<option value ="0">aaa</option>
+  			<option value ="1">bbb</option>
+		</select>
+		<input type="button" id="train" value="TrainModel"/>
+		<h4 style="display:inline">训练模型</h4>
+	</div>
+
+	<div style="margin-bottom: 10px">
+		<h4 style="display:inline">数据集名称</h4>
+		<select id="bucketname-test">
+  			<option value ="0">aaa</option>
+  			<option value ="1">bbb</option>
+		</select>
+		<input type="button" id="test" value="TestModel"/>
+		<h4 style="display:inline">测试模型, 测试训练好的模型</h4>
+	</div>
+
+	<div style="margin-bottom: 10px">
+		<input type="button" id="apply" value="ApplyModel"/>
+		<h4 style="display:inline">应用模型，应用训练的模型, 机器学习模式下才有效。</h4>
+	</div>
+
+	<div style="margin-bottom: 10px">
+		<select id="type">
+  			<option value ="0">传统模式</option>
+  			<option value ="1">机器学习模式</option>
+		</select>
+	<input type="button" id="switch" value="Switch"/><h4 style="display:inline">切换模式,默认是传统模式</h4></div>
+</div>
+</body>

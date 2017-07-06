@@ -23,15 +23,15 @@ class BaseController(web.RequestHandler):
 
 		self.version = platform.python_version_tuple()
 
-	def post(self):
-		self.invokeExecute()
+	def post(self, *args):
+		self.invokeExecute(*args)
 
-	def get(self):
-		self.invokeExecute()
+	def get(self, *args):
+		self.invokeExecute(*args)
 
-	def invokeExecute(self):
+	def invokeExecute(self, *args):
 		try:
-			self.execute()
+			self.execute(*args)
 		except ErrorStatusException, e:
 			self.setResult(status = e.getCode(), msg = e.getMsg())
 			self.loggerWaning.warn(self.oneLine(str(self.getAllArgs()) + "; " + e.getMsg() + "\n" + traceback.format_exc()))

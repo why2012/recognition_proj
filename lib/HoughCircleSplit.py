@@ -3,6 +3,9 @@ import cv2
 import numpy as np
 import json
 import lib.ScantronAnalyzeCV as sc
+import pickle
+from sklearn.svm import SVC
+import os
 
 # 图片宽度对应数组列数，高度对应数组行数
 def getImgSize(img):
@@ -37,6 +40,26 @@ def showImgs(*imgs):
 # 畸变矫正幅度
 def getSkewScale(topLeft, topRight, bottomRight, bottomLeft):
 	return []
+
+def predictUsingSVM(c1, c2, c3, c4, whRatio, thresh = 0):
+	topLeft = np.array([c1[0], c1[1]])
+	topRight = np.array([c2[0], c2[1]])
+	bottomRight = np.array([c3[0], c3[1]])
+	bottomLeft = np.array([c4[0], c4[1]])
+	data = []
+	data.extend(topLeft)
+	data.extend(topRight)
+	data.extend(bottomRight)
+	data.extend(bottomLeft)
+	with open("resources/dbdata/svmdata.svm") as file:
+ 		svmo = pickle.load(file)
+	result = svmo.predict([data])
+	# print "---ML---", result, data
+	if result[0] == 1:
+		difference = 1 - svmo.predict_proba([data])[0][0]
+		return True, (topLeft, topRight, bottomRight, bottomLeft), getSkewScale(topLeft, topRight, bottomRight, bottomLeft), difference
+	else:
+		return False, (), [], float('inf')
 
 def determineBoxRatio(c1, c2, c3, c4, whRatio, thresh = 0.2):
 	topLeft = np.array([c1[0], c1[1]])
@@ -165,10 +188,15 @@ def determingCorrectCircles(circles, whRatio, isMobile = False):
 		for circleTopRight in topRightCircles:
 			for circleBottomRight in bottomRightCircles:
 				for circleBottomLeft in bottomLeftCircles:
-					if not isMobile:
-						result, corners, skewScale, difference = determineBoxRatio(circleTopLeft, circleTopRight, circleBottomRight, circleBottomLeft, whRatio)
+					# 机器学习模式
+					if os.path.exists("resources/dbdata/useml.lock") and os.path.exists("resources/dbdata/svmdata.svm"):
+						result, corners, skewScale, difference = predictUsingSVM(circleTopLeft, circleTopRight, circleBottomRight, circleBottomLeft, whRatio)
+					# 传统模式
 					else:
-						result, corners, skewScale, difference = determineBoxRatioMobile(circleTopLeft, circleTopRight, circleBottomRight, circleBottomLeft, whRatio)
+						if not isMobile:
+							result, corners, skewScale, difference = determineBoxRatio(circleTopLeft, circleTopRight, circleBottomRight, circleBottomLeft, whRatio)
+						else:
+							result, corners, skewScale, difference = determineBoxRatioMobile(circleTopLeft, circleTopRight, circleBottomRight, circleBottomLeft, whRatio)
 					if result:
 						correctResult.append({"diff": difference, "corners": corners, "skewScale": skewScale, \
 							"circleTopLeft": circleTopLeft, "circleTopRight": circleTopRight, "circleBottomRight": circleBottomRight, \
@@ -381,6 +409,35 @@ def circleSplitMobilePlus(originalImg, paperW, paperH, colorImg, resizeScale, sc
 	if showImg:
 		showImgs(colorImg, img, imgColor02, imgColor)
 	return (correctCircles, blockListImg)
+
+# 收集训练数据用
+def circleSplitMobilePlusCollectData(originalImg, colorImg, resizeScale, scaleThresh = 1.0, showImg = False):
+	imgSize = getImgSize(originalImg)
+	w, h = imgSize
+	imgColor02 = originalImg.copy()
+	img = grayImg(originalImg)
+	contours_circle = removeLargeBlackArea(img, showImg = showImg)
+	circles = getCircles(contours_circle)
+	if circles is None or len(circles) == 0:
+		return imgColor02
+	if len(circles) >= 10:
+		# 只取半径大于平均值的圆
+		avgRadius = np.average(circles[:, 2]) * 0.4
+		# avgRadius = 0
+		circles = np.array([circles[circles[:, 2] >= avgRadius]])[0]
+	# print circles
+	# 画出过滤前的圆
+	if circles.any():
+		circleIndex = 0
+		circles = np.uint16(np.around(circles))
+		for i in circles:
+			cv2.circle(imgColor02,(i[0],i[1]),i[2],(0,255,0),2)
+			cv2.circle(imgColor02,(i[0],i[1]),2,(0,0,255),3)
+			cv2.putText(imgColor02, str(circleIndex), (i[0],i[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,0,255), 2)
+			circleIndex += 1
+	if showImg:
+		showImgs(colorImg, img, imgColor02)
+	return circles, imgColor02
 
 def circleSplitMobile(originalImg, paperW, paperH, colorImg, resizeScale, scaleThresh = 1.0, showImg = False, records = False):
 	imgSize = getImgSize(originalImg)
